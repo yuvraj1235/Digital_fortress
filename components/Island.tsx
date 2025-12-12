@@ -3,10 +3,18 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Loader, Environment } from "@react-three/drei";
+import {
+  OrbitControls,
+  useGLTF,
+  Loader,
+  Environment,
+  Cloud,
+  Clouds,
+} from "@react-three/drei";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import gsap from "gsap";
 
+// ---------------- WATER PRESETS ----------------
 type WaterPreset = {
   waterColor: number;
   distortionScale?: number;
@@ -23,8 +31,9 @@ const PRESETS: Record<string, WaterPreset> = {
   shallow: { waterColor: 0x88ccee, distortionScale: 1.8 },
 };
 
+// ---------------- WATER PLANE ----------------
 function WaterPlane({
-  preset = "emerald",
+  preset = "cinematic",
   size = 20000,
 }: {
   preset?: keyof typeof PRESETS | string;
@@ -33,14 +42,12 @@ function WaterPlane({
   const { scene } = useThree();
   const waterRef = useRef<THREE.Object3D | null>(null);
 
-  // Load normals (memoized)
   const waterNormals = useMemo(() => {
-    const tex = new THREE.TextureLoader().load("/textures/waternormals.jpg");
+    const tex = new THREE.TextureLoader().load("/textures/waternormals.webp");
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     return tex;
   }, []);
 
-  // Create water object only once (memoized)
   const waterObject = useMemo(() => {
     const geom = new THREE.PlaneGeometry(size, size);
     const cfg = PRESETS[preset] ?? PRESETS.cinematic;
@@ -52,42 +59,28 @@ function WaterPlane({
       sunDirection: new THREE.Vector3(1, 1, 1),
       sunColor: cfg.sunColor ?? 0xffffff,
       waterColor: cfg.waterColor,
-      distortionScale: cfg.distortionScale ?? 1.8, // lowered for less plastic look
+      distortionScale: cfg.distortionScale ?? 1.8,
       fog: !!scene.fog,
     });
 
     water.rotation.x = -Math.PI / 2;
     water.receiveShadow = true;
-
-    // push it slightly down so edges don't reveal background
-    water.position.y = 3.04;
+    water.position.y = 3.05;
 
     return water as THREE.Object3D;
-    // include scene so memo recreates if fog changes
   }, [waterNormals, preset, size, scene]);
 
-  // cleanup on unmount
   useEffect(() => {
     const obj = waterObject as any;
-    if (!obj) return;
     return () => {
       try {
         obj.geometry?.dispose?.();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m: any) => m.dispose?.());
-          } else {
-            obj.material.dispose?.();
-          }
-        }
+        obj.material?.dispose?.();
         waterNormals?.dispose?.();
-      } catch (e) {
-        /* ignore disposal errors */
-      }
+      } catch {}
     };
   }, [waterObject, waterNormals]);
 
-  // update time uniform each frame
   useFrame((_, delta) => {
     const mat = (waterObject as any).material;
     if (mat?.uniforms?.time) mat.uniforms.time.value += delta;
@@ -96,6 +89,7 @@ function WaterPlane({
   return <primitive object={waterObject} ref={waterRef} />;
 }
 
+// ---------------- ISLAND MODEL ----------------
 function IslandModel({
   url = "/models/island.glb",
   yOffset = 4,
@@ -122,13 +116,14 @@ function IslandModel({
   return <primitive object={scene} />;
 }
 
+// ---------------- CAMERA INTRO ANIMATION ----------------
 function CameraIntro({ enabled = true }: { enabled?: boolean }) {
   const { camera } = useThree();
 
   useEffect(() => {
     if (!enabled) return;
-    const from = { x: 200, y: 150, z: 300 };
-    camera.position.set(from.x, from.y, from.z);
+
+    camera.position.set(200, 150, 300);
 
     const tl = gsap.timeline();
     tl.to(camera.position, {
@@ -148,8 +143,9 @@ function CameraIntro({ enabled = true }: { enabled?: boolean }) {
   return null;
 }
 
+// ---------------- MAIN SCENE ----------------
 export default function IslandScene({
-  preset = "shallow",
+  preset = "cinematic",
   showControls = true,
 }: {
   preset?: keyof typeof PRESETS | string;
@@ -162,54 +158,82 @@ export default function IslandScene({
         camera={{ position: [50, 40, 70], fov: 45 }}
         style={{ width: "100vw", height: "100vh" }}
       >
-        {/* use your panorama webp as an environment (equirectangular) */}
+        {/* 🌫️ CINEMATIC ATMOSPHERIC FOG */}
+        <fog attach="fog" args={["#cbe5ff", 0.0008]} />
+
+        {/* ☁️ VOLUMETRIC CLOUDS */}
+        <Clouds material={THREE.MeshLambertMaterial}>
+          <Cloud
+            seed={1}
+            scale={2}
+            color="#ffffff"
+            opacity={0.35}
+            segments={20}
+            position={[0, 120, -80]}
+          />
+          <Cloud
+            seed={15}
+            scale={2.5}
+            color="#e6f5ff"
+            opacity={0.4}
+            segments={25}
+            position={[80, 150, -150]}
+          />
+          <Cloud
+            seed={9}
+            scale={1.8}
+            color="#ffffff"
+            opacity={0.3}
+            segments={18}
+            position={[-90, 110, -100]}
+          />
+        </Clouds>
+
+        {/* 🌄 SKYBOX */}
         <Environment
-  files={[
-    "/sky/px.webp",
-    "/sky/nx.webp",
-    "/sky/py.webp",
-    "/sky/ny.webp",
-    "/sky/pz.webp",
-    "/sky/nz.webp",
-  ]}
-  background
-/>
-        {/* sky-ish background fallback (used before env loads) */}
+          files={[
+            "/sky/px.webp",
+            "/sky/nx.webp",
+            "/sky/py.webp",
+            "/sky/ny.webp",
+            "/sky/pz.webp",
+            "/sky/nz.webp",
+          ]}
+          background
+        />
+
         <color attach="background" args={["#9fd3ff"]} />
 
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={4} />
         <directionalLight
           castShadow
           position={[150, 300, 150]}
-          intensity={1.5}
-          shadow-mapSize-width={4096}
-          shadow-mapSize-height={4096}
-          shadow-camera-far={2000}
-          shadow-camera-left={-800}
-          shadow-camera-right={800}
-          shadow-camera-top={800}
-          shadow-camera-bottom={-800}
+          intensity={0.5}
         />
 
-        {/* Water plane (big) */}
+        {/* 🌊 WATER */}
         <WaterPlane preset={preset} />
 
-        {/* Island model */}
+        {/* 🏝️ ISLAND */}
         <IslandModel url="/models/island_1.glb" yOffset={3} scale={1} />
 
-        {/* camera intro animation */}
+        {/* 🎥 CAMERA ANIMATION */}
         <CameraIntro enabled />
 
-        {showControls && <OrbitControls
-  enableDamping
-  minPolarAngle={Math.PI * 0.2}   // look down limit
-  maxPolarAngle={Math.PI * 0.45}  // look up limit
-  minAzimuthAngle={-Math.PI}  // left turn limit
-  maxAzimuthAngle={Math.PI / 4}   // right turn limit
-   enablePan enableZoom
-    minDistance={10}   // how close camera can go
-  maxDistance={100}  // how far camera can go
-   />}
+        {/* 🎮 CONTROLS */}
+        {showControls && (
+          <OrbitControls
+            enableDamping
+            minPolarAngle={Math.PI * 0.2}
+            maxPolarAngle={Math.PI * 0.45}
+            minAzimuthAngle={-Math.PI}
+            maxAzimuthAngle={Math.PI / 4}
+            enablePan
+            enableZoom
+            minDistance={10}
+            maxDistance={100}
+          />
+        )}
       </Canvas>
 
       <Loader />

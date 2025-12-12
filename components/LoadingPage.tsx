@@ -14,7 +14,7 @@ export default function LoadingScreen({ progress = 0 }) {
   return (
     <div
       className={`
-        fixed inset-0 z-[9999] flex flex-col items-center justify-center
+        fixed inset-0 z-9999 flex flex-col items-center justify-center
         transition-opacity duration-700 
         ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}
       `}

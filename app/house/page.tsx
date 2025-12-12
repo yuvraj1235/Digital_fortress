@@ -1,15 +1,14 @@
 import CustomCursor from "@/components/CustomCursor";
 import IslandScene from "@/components/Island";
 import Navbar from "@/components/Navbar";
+import Panorama from "@/components/House";
 import BottomBar from "@/components/ShareIcon";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <CustomCursor/>
       <Navbar></Navbar>
-      
-     <IslandScene></IslandScene>
+      <Panorama/>
      <BottomBar></BottomBar>
     </main>
   );

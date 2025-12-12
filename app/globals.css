@@ -39,3 +39,6 @@
   cursor: pointer;
   margin-top: 10px;
 }
+body {
+  cursor: none; /* hide system cursor */
+}
