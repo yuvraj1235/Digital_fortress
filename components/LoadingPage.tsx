@@ -19,7 +19,7 @@ export default function LoadingScreen({ progress = 0 }) {
         ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}
       `}
       style={{
-        backgroundImage: "url('/bg.jpeg')",
+        backgroundImage: "url('/bg.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
