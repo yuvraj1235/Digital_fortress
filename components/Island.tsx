@@ -10,6 +10,7 @@ import {
   Environment,
   Cloud,
   Clouds,
+  Html,
 } from "@react-three/drei";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import gsap from "gsap";
@@ -113,7 +114,11 @@ function IslandModel({
     });
   }, [scene, yOffset, scale]);
 
-  return <primitive object={scene} />;
+  return (
+    <primitive
+      object={scene}
+    />
+  );
 }
 
 // ---------------- CAMERA INTRO ANIMATION ----------------
@@ -234,6 +239,81 @@ export default function IslandScene({
             maxDistance={100}
           />
         )}
+
+        {/* ---------------- INTERACTIVE BUTTONS ---------------- */}
+
+        {/* 1. HOUSE / MAIN BASE */}
+        {/* 1. HOUSE / MAIN BASE */}
+        <Html
+          position={[-8.17, 3.62, 0.48]}
+          center
+          distanceFactor={15}
+          zIndexRange={[100, 0]}
+        >
+          <div
+            data-level="ENTER HOUSE"
+            className="
+              relative flex items-center justify-center
+              w-5 h-5
+              bg-white/20 rounded-full
+              border border-white/60
+              shadow-[0_0_15px_rgba(255,255,255,0.5)]
+              cursor-pointer
+              transition-all duration-300
+              hover:scale-125
+              group
+            "
+            onClick={() => window.location.href = "/house"}
+          />
+        </Html>
+
+        {/* 2. THE STADIUM (Arena) */}
+        <Html
+          position={[-4.38, 4.92, -1.53]}
+          center
+          distanceFactor={20}
+          zIndexRange={[100, 0]}
+        >
+          <div
+            data-level="ENTER STADIUM"
+            className="
+              relative flex items-center justify-center
+              w-6 h-6
+              bg-white/20 rounded-full
+              border border-white/60
+              shadow-[0_0_15px_rgba(255,255,255,0.5)]
+              cursor-pointer
+              transition-all duration-300
+              hover:scale-125
+              group
+            "
+            onClick={() => window.location.href = "/quiz"}
+          />
+        </Html>
+
+        {/* 3. THE RUINS */}
+        <Html
+          position={[-6.63, 3.91, -1.54]}
+          center
+          distanceFactor={20}
+          zIndexRange={[100, 0]}
+        >
+          <div
+            data-level="EXPLORE RUINS"
+            className="
+              relative flex items-center justify-center
+              w-5 h-5
+              bg-white/20 rounded-full
+              border border-white/60
+              shadow-[0_0_15px_rgba(255,255,255,0.5)]
+              cursor-pointer
+              transition-all duration-300
+              hover:scale-125
+              group
+            "
+            onClick={() => window.location.href = "/ruins"}
+          />
+        </Html>
       </Canvas>
 
       {/* Loader removed to use custom LoadingScreen in parent */}
