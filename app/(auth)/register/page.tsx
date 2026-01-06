@@ -2,6 +2,8 @@
 import {useState} from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
+
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -77,12 +79,12 @@ export default function RegisterPage() {
             {/* Login */}
             <p className="text-center text-sm text-white/80">
               Already have an account?{' '}
-              <a
+              <Link
                 href="/login"
                 className="font-semibold text-amber-300 hover:underline"
               >
                 LOGIN
-              </a>
+              </Link>
             </p>
             {/* Button */}
             <button

@@ -2,6 +2,7 @@
 import {useState} from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 
 export default function RegisterPage() {
@@ -84,12 +85,12 @@ export default function RegisterPage() {
             {/* Login */}
             <p className="text-center text-sm text-white/80">
               Here for the first time?{' '}
-              <a
-                href="/login"
+              <Link
+                href="/register"
                 className="font-semibold text-amber-300 hover:underline"
               >
                 REGISTER
-              </a>
+              </Link>
             </p>
             {/* Button */}
             <button
