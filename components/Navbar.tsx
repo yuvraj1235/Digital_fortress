@@ -1,6 +1,8 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 
 function Navbar() {
+  const router=useRouter();
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-transparent">
       {/* Container with justify-between pushes items to edges */}
@@ -19,10 +21,11 @@ function Navbar() {
 
         {/* CENTER LOGO - Absolutely Positioned */}
         {/* 'left-1/2 -translate-x-1/2' locks it to the exact screen center */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 hover:scale-110">
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 hover:scale-110" >
           <img 
             src="/logo/DF.png" 
             alt="Digital Fortress" 
+            onClick={() => router.push("/home")}
             // Reduced h-40 to h-24 or h-28 to align better with the left logo
             className="h-24 md:h-28 object-contain drop-shadow-lg" 
           />

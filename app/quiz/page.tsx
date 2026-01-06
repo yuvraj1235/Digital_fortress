@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -7,6 +8,7 @@ export default function QuizPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
+      <Navbar/>
       {/* Background Image Overlay */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -25,14 +27,7 @@ export default function QuizPage() {
         {/* Pointer events removed from container so clicks pass through, re-enabled on buttons/logos */}
 
         {/* Left Corner: Club Logo */}
-        <div className="relative w-10 h-10 md:w-13 md:h-13 pointer-events-auto z-30">
-          <Image
-            src="/logo/glug.png"
-            alt="Club Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
+       
 
         {/* Back Button: somewhat in the center of the logo and website name - Desktop Only */}
         <div className="hidden md:block absolute left-[15%] top-0 w-38 h-32 cursor-pointer pointer-events-auto hover:scale-105 transition-transform">
@@ -44,16 +39,7 @@ export default function QuizPage() {
           />
         </div>
 
-        {/* Center: Website Name (DF Logo) */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[40vw] md:w-[30vw] max-w-[500px] h-24 md:h-32 pointer-events-auto z-20">
-          <Image
-            src="/logo/DF.png"
-            alt="Digital Fortress Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
-
+       
         {/* Right Corner: Rules Button - Desktop Only */}
         <div className="hidden md:block absolute right-[15%] top-0 w-39 h-34 cursor-pointer pointer-events-auto hover:scale-105 transition-transform">
           <Image
