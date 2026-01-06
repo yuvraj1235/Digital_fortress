@@ -54,45 +54,43 @@ export default function CustomCursor() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
-  // ----------- LEVEL HOVER INTERACTIONS (scale + text change ONLY) -------------
+  // ----------- LEVEL HOVER INTERACTIONS (Event Delegation) -------------
   useEffect(() => {
-    const items = document.querySelectorAll("[data-level]");
+    // We use event delegation so it works for dynamically added elements (like Drei <Html>)
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("[data-level]");
+      if (target) {
+        const name = target.getAttribute("data-level");
+        setCursorText(name || "VISIT");
 
-    const enter = (e: Event) => {
-      const el = e.currentTarget as HTMLElement;
-      const name = el.getAttribute("data-level");
-
-      setCursorText(name || "VISIT");
-
-      // Grow cursor
-      gsap.to(cursorRef.current, {
-        scale: 1.7,
-        duration: 0.25,
-        ease: "power3.out",
-      });
+        gsap.to(cursorRef.current, {
+          scale: 1.7,
+          duration: 0.25,
+          ease: "power3.out",
+        });
+      }
     };
 
-    const leave = () => {
-      setCursorText("VISIT");
-
-      // Shrink cursor
-      gsap.to(cursorRef.current, {
-        scale: 1,
-        duration: 0.25,
-        ease: "power3.out",
-      });
+    const handleMouseOut = (e: MouseEvent) => {
+      // If we are leaving a data-level element
+      const target = (e.target as HTMLElement).closest("[data-level]");
+      if (target) {
+        setCursorText("VISIT");
+        gsap.to(cursorRef.current, {
+          scale: 1,
+          duration: 0.25,
+          ease: "power3.out",
+        });
+      }
     };
 
-    items.forEach((el) => {
-      el.addEventListener("mouseenter", enter);
-      el.addEventListener("mouseleave", leave);
-    });
+    document.addEventListener("mouseover", handleMouseOver);
+    document.addEventListener("mouseout", handleMouseOut);
 
-    return () =>
-      items.forEach((el) => {
-        el.removeEventListener("mouseenter", enter);
-        el.removeEventListener("mouseleave", leave);
-      });
+    return () => {
+      document.removeEventListener("mouseover", handleMouseOver);
+      document.removeEventListener("mouseout", handleMouseOut);
+    };
   }, []);
 
   return (
