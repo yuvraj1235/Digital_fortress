@@ -77,7 +77,7 @@ function WaterPlane({
         obj.geometry?.dispose?.();
         obj.material?.dispose?.();
         waterNormals?.dispose?.();
-      } catch {}
+      } catch { }
     };
   }, [waterObject, waterNormals]);
 
@@ -236,7 +236,7 @@ export default function IslandScene({
         )}
       </Canvas>
 
-      <Loader />
+      {/* Loader removed to use custom LoadingScreen in parent */}
     </>
   );
 }
