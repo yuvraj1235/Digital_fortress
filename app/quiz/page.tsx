@@ -1,10 +1,16 @@
+
+
+
 "use client";
 
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import { useState } from "react";
+import Rules from "@/components/Rules";
+
 
 export default function QuizPage() {
+  const [showRules, setShowRules] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
@@ -39,9 +45,13 @@ export default function QuizPage() {
           />
         </div>
 
-       
         {/* Right Corner: Rules Button - Desktop Only */}
-        <div className="hidden md:block absolute right-[15%] top-0 w-39 h-34 cursor-pointer pointer-events-auto hover:scale-105 transition-transform">
+        {/* Right Corner: Rules Button - Desktop Only */}
+        <div
+          onClick={() => setShowRules(true)}
+          className="hidden md:block absolute right-[15%] top-0 w-39 h-34 cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
+        >
+
           <Image
             src="/logo/rules.png"
             alt="Rules Button"
@@ -78,9 +88,16 @@ export default function QuizPage() {
           <div className="w-48 h-14 bg-orange-500/60 border-2 border-orange-300 flex items-center justify-center font-bold text-xl rounded-lg cursor-pointer hover:bg-orange-600/60">
             Back
           </div>
-          <div className="w-48 h-14 bg-yellow-500/60 border-2 border-yellow-300 flex items-center justify-center font-bold text-xl rounded-lg cursor-pointer hover:bg-yellow-600/60">
+          <div
+            onClick={() => {
+              setIsMenuOpen(false);
+              setShowRules(true);
+            }}
+            className="w-48 h-14 bg-yellow-500/60 border-2 border-yellow-300 flex items-center justify-center font-bold text-xl rounded-lg cursor-pointer hover:bg-yellow-600/60"
+          >
             Rules
           </div>
+
         </div>
       )
       }
@@ -148,6 +165,7 @@ export default function QuizPage() {
               />
             </div>
 
+
             <div className="relative z-10 flex flex-col items-center">
               <div className="text-2xl font-bold mb-2">Map</div>
               <p className="opacity-70 text-center">Map Area Placeholder</p>
@@ -155,6 +173,7 @@ export default function QuizPage() {
           </div>
         </div>
       </div>
+      <Rules open={showRules} onClose={() => setShowRules(false)} />
     </div>
   );
 }
