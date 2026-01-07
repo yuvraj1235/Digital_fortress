@@ -151,12 +151,13 @@ export default function QuizPage() {
 <div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center p-4 md:p-8 text-white order-2 overflow-hidden">
   
   {/* Map Background Image */}
-  <div className="absolute z-10 flex items-center justify-center pointer-events-none">
+  <div className="absolute z-0 flex items-center justify-center pointer-events-none">
     <Image
       src="/quiz/quizmap.png"
       alt="Map Background"
       width={1000}
       height={800}
+      className="opacity-100 max-w-none"
     />
   </div>
 
