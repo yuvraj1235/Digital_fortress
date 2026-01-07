@@ -1,12 +1,9 @@
-
-
-
 "use client";
-
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import { useState } from "react";
 import Rules from "@/components/Rules";
+import { MyMap } from "@/components/MyMap";
 
 
 export default function QuizPage() {
@@ -150,27 +147,24 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Right Div: Map (Bottom on mobile) */}
-          <div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center p-6 text-white order-2 overflow-hidden">
+         {/* Right Div: Map (Bottom on mobile) */}
+<div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center p-4 md:p-8 text-white order-2 overflow-hidden">
+  
+  {/* Map Background Image */}
+  <div className="absolute z-10 flex items-center justify-center pointer-events-none">
+    <Image
+      src="/quiz/quizmap.png"
+      alt="Map Background"
+      width={1000}
+      height={800}
+    />
+  </div>
 
-            {/* --- MANUAL BACKGROUND SIZE ADJUSTMENT --- */}
-            {/* Change the width and height numbers below to resize the image as you like */}
-            <div className="absolute z-0 flex items-center justify-center pointer-events-none">
-              <Image
-                src="/quiz/quizmap.png"
-                alt="Map Background"
-                width={1000}
-                height={800}
-                className="opacity-100 max-w-none"
-              />
-            </div>
-
-
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="text-2xl font-bold mb-2">Map</div>
-              <p className="opacity-70 text-center">Map Area Placeholder</p>
-            </div>
-          </div>
+  {/* Map Container - Increased z-index and forced 100% height */}
+  <div className="relative z-10 w-full h-full min-h-0 flex-grow">
+    <MyMap />
+  </div>
+</div>
         </div>
       </div>
       <Rules open={showRules} onClose={() => setShowRules(false)} />

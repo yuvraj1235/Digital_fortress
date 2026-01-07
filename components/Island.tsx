@@ -14,6 +14,7 @@ import {
 } from "@react-three/drei";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import gsap from "gsap";
+import { useRouter } from "next/navigation";
 
 // ---------------- WATER PRESETS ----------------
 type WaterPreset = {
@@ -155,7 +156,9 @@ export default function IslandScene({
 }: {
   preset?: keyof typeof PRESETS | string;
   showControls?: boolean;
-}) {
+
+}) {const router = useRouter();
+  
   return (
     <>
       <Canvas
@@ -263,7 +266,7 @@ export default function IslandScene({
               hover:scale-125
               group
             "
-            onClick={() => window.location.href = "/house"}
+            onClick={() => router.push("/house")}
           />
         </Html>
 
@@ -275,7 +278,7 @@ export default function IslandScene({
           zIndexRange={[100, 0]}
         >
           <div
-            data-level="ENTER STADIUM"
+            data-level="ENTER ARENA"
             className="
               relative flex items-center justify-center
               w-6 h-6
@@ -287,7 +290,7 @@ export default function IslandScene({
               hover:scale-125
               group
             "
-            onClick={() => window.location.href = "/quiz"}
+            onClick={() => router.push("/arena")}
           />
         </Html>
 
@@ -316,7 +319,6 @@ export default function IslandScene({
         </Html>
       </Canvas>
 
-      {/* Loader removed to use custom LoadingScreen in parent */}
     </>
   );
 }
