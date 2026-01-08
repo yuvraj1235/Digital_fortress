@@ -1,50 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/services/auth";
+import Link from "next/link";
+import Script from "next/script"; // Required for reliable script loading
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false); // Track script status
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  // Initialize Google when script is ready
+  useEffect(() => {
+    if (scriptLoaded && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        callback: handleGoogleResponse,
+        use_fedcm_for_prompt: true, // Recommended for modern browser security
+      });
+    }
+  }, [scriptLoaded]);
 
+  const handleGoogleResponse = async (response: any) => {
     try {
-      const data = await loginUser({ email, password });
+      setLoading(true);
+      setError(null);
+      
+      const data = await loginUser({
+        type: "1",
+        accesstoken: response.credential,
+      });
 
-      // ✅ Store token in cookie (middleware-compatible)
-      document.cookie = `df_token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-
-      // Optional: also keep in localStorage for client usage
-      localStorage.setItem("df_token", data.token);
-
-      router.push("/home");
-    } catch (err: any) {
-      switch (err.status) {
-        case 401:
-          setError("Invalid credentials");
-          break;
-        case 402:
-          setError("Session expired");
-          break;
-        default:
-          setError("Login failed. Try again.");
+      if (data.status === 200 && data.token) {
+        // Update both storage types for middleware/API compatibility
+        localStorage.setItem("df_token", data.token);
+        document.cookie = `df_token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
+        
+        router.push("/home");
+      } else if (data.status === 401) {
+        setError("Account not found. Please register first.");
+      } else {
+        throw new Error(data.message || "Login failed");
       }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      const errorMessage = err.data?.message || err.message || "An unexpected error occurred.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    if (!window.google) {
+      setError("Google authentication is still initializing...");
+      return;
+    }
+    window.google.accounts.id.prompt();
   };
 
   return (
@@ -52,76 +67,54 @@ export default function LoginPage() {
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
+      {/* Load Google SDK with explicit onLoad handler */}
+      <Script 
+        src="https://accounts.google.com/gsi/client" 
+        onLoad={() => setScriptLoaded(true)}
+      />
+
       <Navbar />
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-md">
         <div className="absolute inset-0 bg-black/30" />
 
-        <div className="relative px-6 py-8 flex flex-col items-center gap-5 w-full">
-          <img
-            src="/logo/DF_LOGO.png"
-            alt="Logo"
-            className="w-14 h-14 mb-2 drop-shadow-lg"
-          />
+        <div className="relative px-6 py-12 flex flex-col items-center gap-6 w-full text-center">
+          <img src="/logo/DF_LOGO.png" alt="Logo" className="w-20 h-20 mb-2" />
 
-          <h2 className="text-3xl font-extrabold text-white tracking-widest">
-            WELCOME USER
+          <h2 className="text-3xl font-extrabold text-white tracking-widest uppercase">
+            Digital Fortress
           </h2>
 
-          <p className="text-white/70 text-sm text-center">
-            Log in to continue your journey in the Digital Fortress
+          <p className="text-white/70 text-sm">
+            Access the secure zone using your Google account
           </p>
 
-          <form onSubmit={handleLogin} className="w-full space-y-4">
-            <input
-              type="email"
-              placeholder="EMAIL"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-xl bg-black/40 px-5 py-3 text-white placeholder:text-white/70 focus:ring-2 focus:ring-amber-500 border border-white/10"
-            />
-
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="PASSWORD"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-xl bg-black/40 px-5 py-3 pr-14 text-white placeholder:text-white/70 focus:ring-2 focus:ring-amber-500 border border-white/10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70"
-              >
-                {showPassword ? "HIDE" : "SHOW"}
-              </button>
+          {error && (
+            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
+              {error}
             </div>
+          )}
 
-            {error && (
-              <p className="text-red-400 text-sm text-center">
-                {error}
-              </p>
-            )}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading || !scriptLoaded}
+            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-white text-black font-bold tracking-widest hover:bg-gray-100 transition-all disabled:opacity-50"
+          >
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google"
+              className="w-6 h-6"
+            />
+            {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
+          </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold tracking-widest hover:scale-105 transition disabled:opacity-50"
-            >
-              {loading ? "LOGGING IN..." : "LOGIN"}
-            </button>
-
-            <p className="text-center text-sm text-white/80">
-              New here?{" "}
-              <Link href="/register" className="text-amber-300 font-semibold">
-                REGISTER
-              </Link>
-            </p>
-          </form>
+          <p className="text-center text-sm text-white/80 mt-2">
+            Don't have an account?{" "}
+            <Link href="/register" className="font-semibold text-amber-300 hover:underline">
+              REGISTER
+            </Link>
+          </p>
         </div>
       </div>
     </div>
