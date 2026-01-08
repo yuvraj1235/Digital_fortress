@@ -10,28 +10,36 @@ export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
- const handleGoogleLogin = async () => {
+const handleGoogleLogin = () => {
   setLoading(true);
-  try {
-    // This token must come from the Google Login SDK
-    const responseFromGoogle = "ACTUAL_GOOGLE_ID_TOKEN"; 
 
-    const data = await registerUser({
-      type: '1',            // '1' tells Django to use verifyGoogleToken
-      accesstoken: responseFromGoogle
-    });
+  // @ts-ignore
+  window.google.accounts.id.initialize({
+    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+    callback: async (response: any) => {
+      try {
+        // ✅ REAL Google-issued ID token
+        const googleIdToken = response.credential;
 
-    if (data.status === 200) {
-      router.push("/quiz"); // Your backend sends them to the quiz
-    } else {
-      alert(data.message || "Registration failed");
-    }
-  } catch (err) {
-    console.error("Login Error:", err);
-  } finally {
-    setLoading(false);
-  }
+        const data = await registerUser({
+          type: "1",                 // tells backend: Google auth
+          accesstoken: googleIdToken // REAL token
+        });
+
+        router.push("/home");
+      } catch (err) {
+        console.error("Login Error:", err);
+        alert("Google login failed");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  // @ts-ignore
+  window.google.accounts.id.prompt(); // opens Google popup
 };
+
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
@@ -61,7 +69,7 @@ export default function RegisterPage() {
             className="transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
           >
             <img 
-              src="/path-to-your-google-button-image.png" 
+              src="/logo/google.png" 
               alt="Sign in with Google" 
               className="w-[300px] h-auto cursor-pointer"
             />

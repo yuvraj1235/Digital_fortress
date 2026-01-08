@@ -30,7 +30,7 @@ export default function LoginPage() {
       // Optional: also keep in localStorage for client usage
       localStorage.setItem("df_token", data.token);
 
-      router.push("/quiz");
+      router.push("/home");
     } catch (err: any) {
       switch (err.status) {
         case 401:
