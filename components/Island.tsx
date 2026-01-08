@@ -15,7 +15,7 @@ import {
 import { Water } from "three/examples/jsm/objects/Water.js";
 import gsap from "gsap";
 import { useRouter } from "next/navigation";
-
+import Snowfall from "react-snowfall";
 // ---------------- WATER PRESETS ----------------
 type WaterPreset = {
   waterColor: number;
@@ -161,6 +161,7 @@ export default function IslandScene({
   
   return (
     <>
+
       <Canvas
         shadows
         camera={{ position: [50, 40, 70], fov: 45 }}
@@ -168,7 +169,7 @@ export default function IslandScene({
       >
         {/* 🌫️ CINEMATIC ATMOSPHERIC FOG */}
         <fog attach="fog" args={["#cbe5ff", 0.0008]} />
-
+          
         {/* ☁️ VOLUMETRIC CLOUDS */}
         <Clouds material={THREE.MeshLambertMaterial}>
           <Cloud

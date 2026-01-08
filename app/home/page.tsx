@@ -8,6 +8,7 @@ import { useProgress } from "@react-three/drei";
 
 import BottomBar from "@/components/ShareIcon";
 import CustomCursor from "@/components/CustomCursor";
+import Snowfall from "react-snowfall";
 
 export default function Home() {
   /* 
@@ -84,21 +85,26 @@ export default function Home() {
   }, [effectiveProgress]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <CustomCursor></CustomCursor>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      {/* ❄️ SNOWFALL OVERLAY */}
+      <Snowfall
+        snowflakeCount={700}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 30,          // above canvas & UI
+          pointerEvents: "none" // clicks pass through
+        }}
+      />
+
+      <CustomCursor />
       <LoadingScreen progress={effectiveProgress} />
 
-      {/* Audio MUST start muted or browser will block it */}
+      {/* 🔊 Background Audio */}
       <audio id="bg-audio" src="/sounds/waves.webm" autoPlay loop muted />
 
       <Navbar />
       <IslandScene />
-
-      {/* 
-         Removed <Loader /> component as we are using useProgress hook 
-         driven LoadingScreen above 
-      */}
-
       <BottomBar />
     </main>
   );
