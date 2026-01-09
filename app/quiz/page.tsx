@@ -7,15 +7,17 @@ import { useRouter } from "next/navigation";
 import Rules from "@/components/Rules";
 import { MyMap } from "@/components/MyMap";
 import { apiRequest } from "@/lib/api";
-import ClueBox from "@/components/cluebox"; // Make sure to create this file
+import ClueBox from "@/components/Cluebox"; // Importing ClueBox
 
 export default function QuizPage() {
   const router = useRouter();
   const [showRules, setShowRules] = useState(false);
-  const [showClues, setShowClues] = useState(false); // New State
+  const [showClues, setShowClues] = useState(false); // Added for Clues Modal
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
+  // Backend State
   const [roundData, setRoundData] = useState<any>(null);
+  const [clues, setClues] = useState<any[]>([]); // Added for Markers
   const [mapCentre, setMapCentre] = useState<[number, number]>([23.48, 87.32]); 
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(true);
@@ -23,15 +25,20 @@ export default function QuizPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCurrentRound();
+    initRound();
   }, []);
+
+  const initRound = async () => {
+    setLoading(true);
+    await fetchCurrentRound();
+    await fetchClueData(); // Fetches markers for the map
+    setLoading(false);
+  };
 
   const fetchCurrentRound = async () => {
     try {
-      setLoading(true);
       setError("");
       const data = await apiRequest("quiz/getRound");
-      
       if (data.status === 200) {
         setRoundData(data.question);
         setMapCentre(data.centre); 
@@ -40,14 +47,22 @@ export default function QuizPage() {
       }
     } catch (err: any) {
       setError(err.data?.message || "Failed to load the round.");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchClueData = async () => {
+    try {
+      const data = await apiRequest("quiz/getClue");
+      if (data.status === 200) {
+        setClues(data.clues);
+      }
+    } catch (err) {
+      console.error("Clue fetch error", err);
     }
   };
 
   const handleSubmit = async () => {
     if (!answer.trim()) return;
-    
     try {
       setSubmitting(true);
       const data = await apiRequest("quiz/checkRound", {
@@ -57,7 +72,7 @@ export default function QuizPage() {
 
       if (data.status === 200) {
         setAnswer("");
-        fetchCurrentRound();
+        initRound(); // Refresh for next round
         alert("Correct! Moving to next round.");
       } else {
         alert("Wrong Answer. Try again!");
@@ -78,7 +93,6 @@ export default function QuizPage() {
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
-      {/* Header Area */}
       <div className="absolute top-0 left-0 w-full z-20 pointer-events-none flex items-start justify-between p-4 min-h-[5rem]">
         <div onClick={() => router.back()} className="hidden md:block absolute left-[15%] top-0 w-38 h-32 cursor-pointer pointer-events-auto hover:scale-105 transition-transform">
           <Image src="/logo/back.png" alt="Back Button" fill className="object-contain object-top" />
@@ -93,11 +107,16 @@ export default function QuizPage() {
         </button>
       </div>
 
-      {/* Center Board Area */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-8 md:hidden">
+          <div onClick={() => router.back()} className="w-48 h-14 bg-orange-500/60 border-2 border-orange-300 flex items-center justify-center font-bold text-white rounded-lg cursor-pointer">Back</div>
+          <div onClick={() => { setIsMenuOpen(false); setShowRules(true); }} className="w-48 h-14 bg-yellow-500/60 border-2 border-yellow-300 flex items-center justify-center font-bold text-white rounded-lg cursor-pointer">Rules</div>
+        </div>
+      )}
+
       <div className="relative z-8 flex min-h-screen flex-col items-center justify-center p-4 pt-32 pb-32 md:pt-4 md:pb-4">
         <div className="flex flex-col md:flex-row w-[calc(95%-20px)] md:w-[calc(80%-20px)] max-w-6xl h-[70vh] md:h-[60vh] bg-[#2D1B13]/90 rounded-xl overflow-hidden shadow-[0_0_60px_rgba(255,230,150,0.5)] translate-y-10 border-4 border-[#1a100c] backdrop-blur-sm">
 
-          {/* Left Div: Questions */}
           <div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center p-6 text-white order-1 overflow-hidden">
             <div className="absolute z-0 flex items-center justify-center pointer-events-none">
               <Image src="/quiz/quizquest.png" alt="Questions Background" width={1000} height={700} className="opacity-100 max-w-none" />
@@ -123,9 +142,8 @@ export default function QuizPage() {
                   />
 
                   <div className="flex w-full max-w-lg justify-between gap-6">
-                    {/* TRIGGER CLUE BOX */}
                     <button 
-                      onClick={() => setShowClues(true)}
+                      onClick={() => setShowClues(true)} // Open Clues Modal
                       className="flex-1 bg-[#3E2723] hover:bg-[#4E342E] text-[#FFE082] border-2 border-[#8D6E63] py-3 rounded uppercase text-lg"
                     >
                       Clues
@@ -139,25 +157,24 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Right Div: Map */}
           <div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center p-4 text-white order-2 overflow-hidden">
             <div className="absolute z-0 flex items-center justify-center pointer-events-none">
               <Image src="/quiz/quizmap.png" alt="Map Background" width={1000} height={800} className="opacity-100 max-w-none" />
             </div>
             <div className="relative z-10 w-full h-full">
-              <MyMap center={mapCentre} />
+              {/* Pass center and clues to MyMap */}
+              <MyMap center={mapCentre} clues={clues} />
             </div>
           </div>
         </div>
       </div>
-
-      {/* Modals */}
       <Rules open={showRules} onClose={() => setShowRules(false)} />
+      {/* Modal Integration */}
       {showClues && (
         <ClueBox 
-          clue1={roundData?.clue1 || "No clue available yet."} 
-          clue2={roundData?.clue2 || "Keep searching, traveler."} 
+          clues={clues} 
           onClose={() => setShowClues(false)} 
+          refreshClues={fetchClueData} 
         />
       )}
     </div>
