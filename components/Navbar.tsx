@@ -1,60 +1,61 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ProfileModal from "../app/profile/page";
 
 function Navbar() {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [playerImage, setPlayerImage] = useState("/avatar/default.png");
+
+  // useEffect(() => {
+  //   // Fetch user data on mount
+  //   authService.getUserData()
+  //     .then(data => {
+  //       if (data.image) setPlayerImage(data.image);
+  //     })
+  //     .catch(() => console.log("User not logged in"));
+  // }, []);
+
+  const handleProfileClick = () => {
+    router.push("/profile");
+  };
+
+  const handleLogoClick = () => {
+   router.push("/home");
+  };
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 z-50 w-full bg-transparent">
-        <div className="relative flex w-full items-center justify-between px-6 py-4">
+    <nav className="fixed top-0 left-0 z-50 w-full bg-gradient-to-b from-black/40 to-transparent">
+      <div className="relative flex w-full items-center justify-between px-4 md:px-6 py-3 md:py-4">
+        
+        {/* LEFT: GLUG LOGO */}
+        <div className="z-10 hover:scale-110 transition-transform">
+          <a href="https://nitdgplug.org/" target="_blank" rel="noreferrer">
+            <img src="/logo/glug.png" alt="GLUG" className="h-16 md:h-20" />
+          </a>
+        </div>
 
-          {/* LEFT LOGO */}
-          <div className="z-10 shrink-0 hover:scale-110 transition">
-            <a
-              href="https://nitdgplug.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/logo/glug.png"
-                alt="GLUG Logo"
-                className="h-20 w-20 object-contain drop-shadow-lg"
-              />
-            </a>
-          </div>
-
-          {/* CENTER LOGO */}
-          <div className="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition">
-            <img
-              src="/logo/DF.png"
-              alt="Digital Fortress"
-              onClick={() => router.push("/home")}
-              className="h-24 md:h-28 cursor-pointer object-contain drop-shadow-lg"
-            />
-          </div>
-
-          {/* RIGHT PROFILE ICON */}
-          <button
-            onClick={() => setOpen(true)}
-            className="z-10 h-12 w-12 overflow-hidden rounded-full border-2 border-yellow-600 hover:scale-110 transition"
-          >
-            <img
-              src="/avatar/default.png"
-              alt="Profile"
-              className="h-full w-full object-cover"
-            />
+        {/* CENTER: DF LOGO */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform">
+          <button onClick={handleLogoClick}>
+            <img src="/logo/DF.png" alt="Digital Fortress" className="h-20 md:h-28" />
           </button>
         </div>
-      </nav>
 
-      {/* PROFILE POPUP */}
-      {open && <ProfileModal onClose={() => setOpen(false)} />}
-    </>
+        {/* RIGHT: PROFILE */}
+        <button
+          onClick={handleProfileClick}
+          className="z-10 h-12 w-12 md:h-14 md:w-14 overflow-hidden rounded-full border-2 border-yellow-600 shadow-lg"
+        >
+          <img
+            src={playerImage}
+            alt="Profile"
+            className="h-full w-full object-cover"
+            onError={() => setPlayerImage("/avatar/default.png")}
+          />
+        </button>
+      </div>
+    </nav>
   );
 }
 

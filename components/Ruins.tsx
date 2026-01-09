@@ -23,22 +23,22 @@ export default function Panorama() {
       
       {/* Image Buttons */}
       <ImageButton 
-        position={[3, 0, -2]} 
+        position={[2, -2, -2]} 
         image="/level_buttons/1.png" 
         onClick={() => handleNavigate("/home")}
-        size={2}
+        size={3}
       />
       <ImageButton 
-        position={[-3, 0, -2]} 
+        position={[-4, 0, -2]} 
         image="/level_buttons/2.png"
         onClick={() => handleNavigate("/quiz")}
-        size={2}
+        size={3}
       />
       <ImageButton 
-        position={[0, 2, -2]} 
+        position={[0, -1, 3]} 
         image="level_buttons/3.png" 
         onClick={() => handleNavigate("/")}
-        size={2}
+        size={3}
       />
     </Canvas>
   );
