@@ -35,14 +35,14 @@ const PRESETS: Record<string, WaterPreset> = {
 
 // ---------------- WATER PLANE ----------------
 function WaterPlane({
-  preset = "cinematic",
+  preset = "deep",
   size = 20000,
 }: {
   preset?: keyof typeof PRESETS | string;
   size?: number;
 }) {
   const { scene } = useThree();
-  const waterRef = useRef<THREE.Object3D | null>(null);
+  const waterRef = useRef<any>(null);
 
   const waterNormals = useMemo(() => {
     const tex = new THREE.TextureLoader().load("/textures/waternormals.webp");
@@ -50,42 +50,39 @@ function WaterPlane({
     return tex;
   }, []);
 
+  // Create the water object only once
   const waterObject = useMemo(() => {
     const geom = new THREE.PlaneGeometry(size, size);
-    const cfg = PRESETS[preset] ?? PRESETS.cinematic;
-
     const water = new (Water as any)(geom, {
-      textureWidth: cfg.textureWidth ?? 1024,
-      textureHeight: cfg.textureHeight ?? 1024,
+      textureWidth: 1024,
+      textureHeight: 1024,
       waterNormals,
       sunDirection: new THREE.Vector3(1, 1, 1),
-      sunColor: cfg.sunColor ?? 0xffffff,
-      waterColor: cfg.waterColor,
-      distortionScale: cfg.distortionScale ?? 1.8,
+      sunColor: 0xffffff,
+      waterColor: 0x1ca3ec, // default
+      distortionScale: 1.8,
       fog: !!scene.fog,
     });
-
     water.rotation.x = -Math.PI / 2;
-    water.receiveShadow = true;
     water.position.y = 3.05;
+    return water;
+  }, [waterNormals, size, scene.fog]);
 
-    return water as THREE.Object3D;
-  }, [waterNormals, preset, size, scene]);
-
+  // Update colors when preset changes
   useEffect(() => {
-    const obj = waterObject as any;
-    return () => {
-      try {
-        obj.geometry?.dispose?.();
-        obj.material?.dispose?.();
-        waterNormals?.dispose?.();
-      } catch { }
-    };
-  }, [waterObject, waterNormals]);
+    if (waterObject) {
+      const cfg = PRESETS[preset] ?? PRESETS.cinematic;
+      waterObject.material.uniforms.waterColor.value.setHex(cfg.waterColor);
+      if (cfg.distortionScale) {
+        waterObject.material.uniforms.distortionScale.value = cfg.distortionScale;
+      }
+    }
+  }, [preset, waterObject]);
 
   useFrame((_, delta) => {
-    const mat = (waterObject as any).material;
-    if (mat?.uniforms?.time) mat.uniforms.time.value += delta;
+    if (waterObject.material.uniforms.time) {
+      waterObject.material.uniforms.time.value += delta;
+    }
   });
 
   return <primitive object={waterObject} ref={waterRef} />;
@@ -151,7 +148,7 @@ function CameraIntro({ enabled = true }: { enabled?: boolean }) {
 
 // ---------------- MAIN SCENE ----------------
 export default function IslandScene({
-  preset = "cinematic",
+  preset = "deep",
   showControls = true,
 }: {
   preset?: keyof typeof PRESETS | string;

@@ -5,125 +5,53 @@ import gsap from "gsap";
 
 export default function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
+  const [cursorText, setCursorText] = useState("");
 
-  let mouseX = 0, mouseY = 0;
-  let cx = 0, cy = 0;
-  let lastX = 0, lastY = 0;
-
-  const [cursorText, setCursorText] = useState("VISIT");
-  const speed = 0.2;
-
-  // ----------- SMOOTH FOLLOW (circle + text together) -------------
   useEffect(() => {
     const move = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
-    window.addEventListener("mousemove", move);
-
-    const tick = () => {
-      cx += (mouseX - cx) * speed;
-      cy += (mouseY - cy) * speed;
-
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate(${cx}px, ${cy}px)`;
-      }
-      if (textRef.current) {
-        textRef.current.style.transform = `translate(${cx}px, ${cy}px)`;
-      }
-
-      // ROTATION BASED ON MOVEMENT
-      const dx = mouseX - lastX;
-      const dy = mouseY - lastY;
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
+      // Direct GSAP move for smoothness without complex math
       gsap.to(cursorRef.current, {
-        rotate: angle,
-        duration: 0.3,
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.1,
         ease: "power2.out",
       });
-
-      lastX = mouseX;
-      lastY = mouseY;
-
-      requestAnimationFrame(tick);
     };
 
-    tick();
-    return () => window.removeEventListener("mousemove", move);
-  }, []);
-
-  // ----------- LEVEL HOVER INTERACTIONS (Event Delegation) -------------
-  useEffect(() => {
-    // We use event delegation so it works for dynamically added elements (like Drei <Html>)
-    const handleMouseOver = (e: MouseEvent) => {
+    const handleOver = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest("[data-level]");
       if (target) {
-        const name = target.getAttribute("data-level");
-        setCursorText(name || "VISIT");
-
-        gsap.to(cursorRef.current, {
-          scale: 1.7,
-          duration: 0.25,
-          ease: "power3.out",
-        });
+        setCursorText(target.getAttribute("data-level") || "");
+        gsap.to(cursorRef.current, { scale: 1.5, backgroundColor: "#5d4037", duration: 0.3 });
       }
     };
 
-    const handleMouseOut = (e: MouseEvent) => {
-      // If we are leaving a data-level element
-      const target = (e.target as HTMLElement).closest("[data-level]");
-      if (target) {
-        setCursorText("VISIT");
-        gsap.to(cursorRef.current, {
-          scale: 1,
-          duration: 0.25,
-          ease: "power3.out",
-        });
-      }
+    const handleOut = () => {
+      setCursorText("");
+      gsap.to(cursorRef.current, { scale: 1, backgroundColor: "transparent", duration: 0.3 });
     };
 
-    document.addEventListener("mouseover", handleMouseOver);
-    document.addEventListener("mouseout", handleMouseOut);
+    window.addEventListener("mousemove", move);
+    document.addEventListener("mouseover", handleOver);
+    document.addEventListener("mouseout", handleOut);
 
     return () => {
-      document.removeEventListener("mouseover", handleMouseOver);
-      document.removeEventListener("mouseout", handleMouseOut);
+      window.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseover", handleOver);
+      document.removeEventListener("mouseout", handleOut);
     };
   }, []);
 
   return (
-    <>
-      {/* Cursor Circle */}
-      <div
-        ref={cursorRef}
-        className="
-          fixed top-0 left-0 pointer-events-none z-9999
-          w-24 h-24 rounded-full
-          border-2 border-[#00eaff]
-          shadow-[0_0_15px_#00eaff]
-        "
-        style={{
-          marginLeft: "-48px",
-          marginTop: "-48px",
-        }}
-      />
-
-      {/* Cursor Text */}
-      <div
-        ref={textRef}
-        className="
-          fixed top-0 left-0 pointer-events-none z-10000
-          text-white text-xs font-bold tracking-wide
-        "
-        style={{
-          marginLeft: "-12px",
-          marginTop: "-6px",
-        }}
-      >
-        {cursorText}
-      </div>
-    </>
+    <div
+      ref={cursorRef}
+      className="fixed top-0 left-0 pointer-events-none z-[9999] 
+                 flex items-center justify-center
+                 w-8 h-8 rounded-full border-2 border-[#8d6e63]
+                 text-[10px] font-bold text-[#3e2723] transition-colors"
+      style={{ marginLeft: "-16px", marginTop: "-16px" }}
+    >
+      {cursorText}
+    </div>
   );
 }
