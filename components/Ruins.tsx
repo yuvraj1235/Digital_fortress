@@ -5,8 +5,9 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { apiRequest } from "@/lib/api"; //
+import { apiRequest } from "@/lib/api"; 
 import ImageButton from "./ImageButton";
+import { toast } from "sonner"; // Import Sonner
 
 export default function Panorama() {
   const router = useRouter();
@@ -15,12 +16,11 @@ export default function Panorama() {
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // 1. Fetch User Progress from Backend
     const fetchProgress = async () => {
       try {
-        const data = await apiRequest("quiz/getRound"); //
+        const data = await apiRequest("quiz/getRound"); 
         if (data.status === 200) {
-          setCurrentRound(data.question.round_number); //
+          setCurrentRound(data.question.round_number); 
         }
       } catch (err) {
         console.error("Failed to fetch progress", err);
@@ -28,12 +28,10 @@ export default function Panorama() {
     };
     fetchProgress();
 
-    // 2. Initialize Audio
     bgMusicRef.current = new Audio("/sounds/ruins.mp3");
     bgMusicRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
-    // Start background music on first interaction (browser policy)
     const startAudio = () => {
       bgMusicRef.current?.play().catch(() => {});
       window.removeEventListener("click", startAudio);
@@ -47,14 +45,20 @@ export default function Panorama() {
   }, []);
 
   const handleNavigate = (path: string, levelRequired: number) => {
-    // Play click sound
     clickSoundRef.current?.play().catch(() => {});
 
-    // 3. Progression Check Logic
     if (currentRound >= levelRequired) {
       router.push(path);
     } else {
-      alert(`Level Locked! You must clear up to Level ${levelRequired - 1} first.`);
+      // Replaced alert with Sonner Toast
+      toast.error("Level Access Denied", {
+        description: `Complete current challenges to unlock Level ${levelRequired}.`,
+        style: {
+          background: "#1a100c",
+          color: "#FFD700",
+          border: "1px solid #5D4037",
+        },
+      });
     }
   };
 
@@ -66,16 +70,14 @@ export default function Panorama() {
       <PanoramaSphere />
       <OrbitControls enableZoom={false} enablePan={false} />
       
-      {/* Level 7 - Requires Round 7 */}
       <ImageButton 
         position={[2, -2, -2]} 
         image="/level_buttons/1.png" 
         onClick={() => handleNavigate("/quiz", 7)}
         size={3}
-        opacity={currentRound >= 7 ? 1 : 0.3} // Visual lock feedback
+        opacity={currentRound >= 7 ? 1 : 0.3}
       />
 
-      {/* Level 9 - Requires Round 9 */}
       <ImageButton 
         position={[-4, 0, -2]} 
         image="/level_buttons/2.png"
@@ -84,7 +86,6 @@ export default function Panorama() {
         opacity={currentRound >= 9 ? 1 : 0.3}
       />
 
-      {/* Level 10 - Requires Round 10 */}
       <ImageButton 
         position={[0, -1, 3]} 
         image="/level_buttons/3.png" 

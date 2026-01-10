@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api"; 
 import ImageButton from "./ImageButton";
+import { toast } from "sonner"; // Import Sonner
 
 export default function Panorama() {
   const router = useRouter();
@@ -15,12 +16,10 @@ export default function Panorama() {
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // 1. Fetch User Progress from Backend
     const fetchProgress = async () => {
       try {
         const data = await apiRequest("quiz/getRound"); 
         if (data.status === 200) {
-          // data.question.round_number indicates the round the player is currently on
           setCurrentRound(data.question.round_number); 
         }
       } catch (err) {
@@ -29,7 +28,6 @@ export default function Panorama() {
     };
     fetchProgress();
 
-    // 2. Setup Audio System
     bgMusicRef.current = new Audio("/sounds/house.mp3");
     bgMusicRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
@@ -49,11 +47,18 @@ export default function Panorama() {
   const handleNavigate = (path: string, levelRequired: number) => {
     clickSoundRef.current?.play().catch(() => {});
 
-    // Progression Check
     if (currentRound >= levelRequired) {
       router.push(path);
     } else {
-      alert(`Level Locked! Complete Round ${levelRequired - 1} first.`);
+      // Replaced alert with Sonner Toast
+      toast.error("Sector Locked", {
+        description: `Round ${levelRequired} is unavailable. Complete previous rounds first.`,
+        style: {
+          background: "#2D1B13",
+          color: "#FFD700",
+          border: "1px solid #8B735B",
+        },
+      });
     }
   };
 
@@ -65,7 +70,6 @@ export default function Panorama() {
       <PanoramaSphere />
       <OrbitControls enableZoom={false} enablePan={false} />
       
-      {/* Level 1 Button -> Accesses Round 4 */}
       <ImageButton 
         position={[3, 0, 0]} 
         image="/level_buttons/1.png" 
@@ -74,7 +78,6 @@ export default function Panorama() {
         opacity={currentRound >= 4 ? 1 : 0.3}
       />
 
-      {/* Level 2 Button -> Accesses Round 5 */}
       <ImageButton 
         position={[-10, 0, 0]} 
         image="/level_buttons/2.png"
@@ -83,7 +86,6 @@ export default function Panorama() {
         opacity={currentRound >= 5 ? 1 : 0.3}
       />
 
-      {/* Level 3 Button -> Accesses Round 6 */}
       <ImageButton 
         position={[-2, -1, 4]} 
         image="/level_buttons/3.png" 
