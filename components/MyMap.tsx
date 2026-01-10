@@ -33,20 +33,17 @@ export function MyMap({ center, clues }: MyMapProps) {
 
   return (
     <div className="h-full w-full rounded-lg overflow-hidden border-2 border-[#1a100c] relative">
-      <Map 
-        ref={mapRef}
-        center={center} 
-        zoom={13}
-        styles={{
-          dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-        }}
-      >
+<Map 
+  ref={mapRef}
+  initialViewState={{
+    longitude: center[1],
+    latitude: center[0],
+    zoom: 13
+  }}
+  // REPLACE THIS LINE:
+  mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
+>
         <MapControls
-          position="bottom-right"
-          showZoom
-          showCompass
-          showLocate
-          showFullscreen
         />
 
         {clues.map((clue) => {

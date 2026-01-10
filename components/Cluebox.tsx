@@ -48,7 +48,7 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
           {!currentClue?.solved ? (
             <div className="w-full space-y-4">
               <input 
-                className="w-full bg-[#1a0f0a] text-[#FFE0B2] border-2 border-[#8B735B] rounded px-4 py-2 text-center"
+                className="w-full bg-[#1a0f0a] text-black border-2 border-[#8B735B] rounded px-4 py-2 text-center"
                 value={clueAnswer}
                 onChange={(e) => setClueAnswer(e.target.value)}
                 placeholder="Answer clue..."

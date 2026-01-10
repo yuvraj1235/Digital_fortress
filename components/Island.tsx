@@ -133,9 +133,9 @@ function CameraIntro({ enabled = true }: { enabled?: boolean }) {
 
     const tl = gsap.timeline();
     tl.to(camera.position, {
-      x: -40,
-      y: 20,
-      z: 20,
+      x: -20,
+      y: 10,
+      z: 10,
       duration: 2.2,
       ease: "power2.out",
       onUpdate: () => camera.updateProjectionMatrix(),
