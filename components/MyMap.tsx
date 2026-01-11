@@ -8,43 +8,44 @@ import {
   MarkerTooltip,
   MarkerPopup,
   MapControls,
-  type MapRef, // Import the type for the ref
+  type MapRef,
 } from "@/components/ui/map";
 import { Navigation, MapPin } from "lucide-react";
 
+interface Clue {
+  id: string | number;
+  solved: boolean;
+  position: [number, number]; // [lat, lng]
+}
+
 interface MyMapProps {
-  center: [number, number]; // [lat, lng] from backend
-  clues: any[]; //
+  center: [number, number]; // [lat, lng]
+  clues: Clue[];
 }
 
 export function MyMap({ center, clues }: MyMapProps) {
   const mapRef = useRef<MapRef>(null);
 
-  // Focus Logic: Triggered when the center prop changes
+  // Focus Logic: Moves the camera when center changes or on mount
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [center[1], center[0]], // Convert [lat, lng] to [lng, lat]
         zoom: 15,
-        essential: true, // This animation is considered essential with respect to prefers-reduced-motion
+        essential: true,
       });
     }
   }, [center]);
 
   return (
     <div className="h-full w-full rounded-lg overflow-hidden border-2 border-[#1a100c] relative">
-<Map 
-  ref={mapRef}
-  initialViewState={{
-    longitude: center[1],
-    latitude: center[0],
-    zoom: 13
-  }}
-  // REPLACE THIS LINE:
-  mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
->
-        <MapControls
-        />
+      <Map 
+        ref={mapRef}
+        styles={{
+          dark: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
+        }}
+      >
+        <MapControls />
 
         {clues.map((clue) => {
           if (!clue.solved || !clue.position) return null;
@@ -86,7 +87,7 @@ export function MyMap({ center, clues }: MyMapProps) {
       {/* Manual Focus Button */}
       <button 
         onClick={() => mapRef.current?.flyTo({ center: [center[1], center[0]], zoom: 15 })}
-        className="absolute top-4 right-4 z-10 bg-[#3E2723]/80 backdrop-blur-md border border-[#FFD700]/50 p-2 rounded-full shadow-lg hover:bg-[#5D4037] transition-all group"
+        className="absolute top-4 right-4 z-20 bg-[#3E2723]/80 backdrop-blur-md border border-[#FFD700]/50 p-2 rounded-full shadow-lg hover:bg-[#5D4037] transition-all group"
       >
         <Navigation className="size-5 text-[#FFD700] group-hover:rotate-12 transition-transform" />
       </button>

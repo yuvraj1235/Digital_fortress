@@ -71,27 +71,36 @@ export default function Panorama() {
       <OrbitControls enableZoom={false} enablePan={false} />
       
       <ImageButton 
-        position={[2, -2, -2]} 
-        image="/level_buttons/1.png" 
-        onClick={() => handleNavigate("/quiz", 7)}
-        size={3}
-        opacity={currentRound >= 7 ? 1 : 0.3}
+       {...({
+          position:[2, -2, -2],
+          image: "/level_buttons/3.png",
+          onClick: () => handleNavigate("/quiz", 10),
+          size: 3,
+           opacity:currentRound >= 7 ? 1 : 0.3,
+        } as any)}
+        
+      
+       
       />
 
       <ImageButton 
-        position={[-4, 0, -2]} 
-        image="/level_buttons/2.png"
-        onClick={() => handleNavigate("/quiz", 9)}
-        size={3}
-        opacity={currentRound >= 9 ? 1 : 0.3}
+      {...({
+          position: [-4, 0, -2],
+          image: "/level_buttons/2.png",
+          onClick: () => handleNavigate("/quiz", 9),
+          size: 3,
+          opacity:currentRound >= 9 ? 1 : 0.3
+        } as any)}
       />
 
-      <ImageButton 
-        position={[0, -1, 3]} 
-        image="/level_buttons/3.png" 
-        onClick={() => handleNavigate("/quiz", 10)}
-        size={3}
-        opacity={currentRound >= 10 ? 1 : 0.3}
+      <ImageButton
+        {...({
+          position: [0, -1, 3],
+          image: "/level_buttons/3.png",
+          onClick: () => handleNavigate("/quiz", 10),
+          size: 3,
+          opacity: currentRound >= 10 ? 1 : 0.3,
+        } as any)}
       />
     </Canvas>
   );

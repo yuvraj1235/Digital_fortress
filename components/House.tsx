@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api"; 
 import ImageButton from "./ImageButton";
+const ImageButtonAny = ImageButton as any;
 import { toast } from "sonner"; // Import Sonner
 
 export default function Panorama() {
@@ -70,7 +71,7 @@ export default function Panorama() {
       <PanoramaSphere />
       <OrbitControls enableZoom={false} enablePan={false} />
       
-      <ImageButton 
+      <ImageButtonAny 
         position={[3, 0, 0]} 
         image="/level_buttons/1.png" 
         onClick={() => handleNavigate("/quiz", 4)}
@@ -78,7 +79,7 @@ export default function Panorama() {
         opacity={currentRound >= 4 ? 1 : 0.3}
       />
 
-      <ImageButton 
+      <ImageButtonAny 
         position={[-10, 0, 0]} 
         image="/level_buttons/2.png"
         onClick={() => handleNavigate("/quiz", 5)}
@@ -86,7 +87,7 @@ export default function Panorama() {
         opacity={currentRound >= 5 ? 1 : 0.3}
       />
 
-      <ImageButton 
+      <ImageButtonAny 
         position={[-2, -1, 4]} 
         image="/level_buttons/3.png" 
         onClick={() => handleNavigate("/quiz", 6)}

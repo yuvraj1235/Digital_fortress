@@ -7,6 +7,12 @@ import { loginUser } from "@/lib/services/auth";
 import Link from "next/link";
 import Script from "next/script"; // Required for reliable script loading
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

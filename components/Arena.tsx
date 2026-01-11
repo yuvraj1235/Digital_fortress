@@ -52,6 +52,8 @@ export default function Panorama() {
     }
   };
 
+  const ImageButtonAny = ImageButton as any;
+
   const handleNavigate = (path: string, levelRequired: number) => {
     playClickSound();
     
@@ -79,7 +81,7 @@ export default function Panorama() {
         <PanoramaSphere />
         <OrbitControls enableZoom={false} enablePan={false} />
         
-        <ImageButton 
+        <ImageButtonAny 
           position={[10, 0, 2]} 
           image="/level_buttons/1.png" 
           onClick={() => handleNavigate("/quiz", 1)}
@@ -87,7 +89,7 @@ export default function Panorama() {
           opacity={currentRound >= 1 ? 1 : 0.3}
         />
 
-        <ImageButton 
+        <ImageButtonAny 
           position={[-5, -0.5, 5]} 
           image="/level_buttons/2.png"
           onClick={() => handleNavigate("/quiz", 2)}
@@ -95,7 +97,7 @@ export default function Panorama() {
           opacity={currentRound >= 2 ? 1 : 0.3}
         />
 
-        <ImageButton 
+        <ImageButtonAny 
           position={[4.5, 0, -6]} 
           image="/level_buttons/3.png" 
           onClick={() => handleNavigate("/quiz", 3)}
