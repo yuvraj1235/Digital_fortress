@@ -6,7 +6,6 @@ import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api"; 
-import ImageButton from "./ImageButton";
 import { toast } from "sonner"; // Import Sonner
 
 export default function Panorama() {
@@ -70,38 +69,7 @@ export default function Panorama() {
       <PanoramaSphere />
       <OrbitControls enableZoom={false} enablePan={false} />
       
-      <ImageButton 
-       {...({
-          position:[2, -2, -2],
-          image: "/level_buttons/3.png",
-          onClick: () => handleNavigate("/quiz", 10),
-          size: 3,
-           opacity:currentRound >= 7 ? 1 : 0.3,
-        } as any)}
-        
-      
-       
-      />
-
-      <ImageButton 
-      {...({
-          position: [-4, 0, -2],
-          image: "/level_buttons/2.png",
-          onClick: () => handleNavigate("/quiz", 9),
-          size: 3,
-          opacity:currentRound >= 9 ? 1 : 0.3
-        } as any)}
-      />
-
-      <ImageButton
-        {...({
-          position: [0, -1, 3],
-          image: "/level_buttons/3.png",
-          onClick: () => handleNavigate("/quiz", 10),
-          size: 3,
-          opacity: currentRound >= 10 ? 1 : 0.3,
-        } as any)}
-      />
+     
     </Canvas>
   );
 }

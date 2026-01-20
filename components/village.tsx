@@ -76,7 +76,7 @@ export default function Panorama() {
 }
 
 function PanoramaSphere() {
-  const texture = useLoader(THREE.TextureLoader, "/levels/house_1.avif");
+  const texture = useLoader(THREE.TextureLoader, "/levels/village.avif");
   texture.mapping = THREE.EquirectangularReflectionMapping;
 
   return (

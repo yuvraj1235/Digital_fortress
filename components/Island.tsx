@@ -1,28 +1,19 @@
-// IslandScene.tsx
 "use client";
-import React, { useEffect, useMemo, useRef } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import {
-  OrbitControls,
-  useGLTF,
-  Loader,
-  Environment,
-  Cloud,
-  Clouds,
-  Html,
-} from "@react-three/drei";
+import { OrbitControls, useGLTF, Environment, Html } from "@react-three/drei";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import gsap from "gsap";
 import { useRouter } from "next/navigation";
-import Snowfall from "react-snowfall";
+import { authService } from "@/lib/services/authService";
+import { toast } from "sonner";
+
 // ---------------- WATER PRESETS ----------------
 type WaterPreset = {
   waterColor: number;
   distortionScale?: number;
-  sunColor?: number;
-  textureWidth?: number;
-  textureHeight?: number;
 };
 
 const PRESETS: Record<string, WaterPreset> = {
@@ -33,16 +24,65 @@ const PRESETS: Record<string, WaterPreset> = {
   shallow: { waterColor: 0x88ccee, distortionScale: 1.8 },
 };
 
-// ---------------- WATER PLANE ----------------
+// ---------------- INDICATOR ----------------
+function Indicator({
+  pos,
+  label,
+  onClick,
+  requiredLevel,
+  currentLevel,
+}: {
+  pos: [number, number, number];
+  label: string;
+  onClick: () => void;
+  requiredLevel: number;
+  currentLevel: number;
+}) {
+  const isLocked = currentLevel < requiredLevel;
+  const isCurrent = currentLevel === requiredLevel;
+
+  let baseColor = "rgba(234,179,8,0.6)";
+  if (isLocked) baseColor = "rgba(220,38,38,0.6)";
+  if (isCurrent) baseColor = "rgba(34,197,94,0.6)";
+
+  return (
+    <Html
+      position={pos}
+      center
+      distanceFactor={15}
+      zIndexRange={[0, 100]} // ✅ FIXED
+    >
+      <div
+        className="flex flex-col items-center"
+        style={{ pointerEvents: "auto" }}
+      >
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick(); // ✅ ALWAYS CALL — toast logic handled outside
+          }}
+          className={`w-6 h-6 rounded-full border-2 border-white/40 transition-all duration-300 hover:scale-125 ${
+            isCurrent ? "animate-pulse" : ""
+          }`}
+          style={{
+            backgroundColor: baseColor,
+            cursor: "pointer",
+          }}
+        />
+      </div>
+    </Html>
+  );
+}
+
+// ---------------- WATER ----------------
 function WaterPlane({
   preset = "deep",
   size = 20000,
 }: {
-  preset?: keyof typeof PRESETS | string;
+  preset?: string;
   size?: number;
 }) {
   const { scene } = useThree();
-  const waterRef = useRef<any>(null);
 
   const waterNormals = useMemo(() => {
     const tex = new THREE.TextureLoader().load("/textures/waternormals.webp");
@@ -50,48 +90,36 @@ function WaterPlane({
     return tex;
   }, []);
 
-  // Create the water object only once
-  const waterObject = useMemo(() => {
-    const geom = new THREE.PlaneGeometry(size, size);
-    const water = new (Water as any)(geom, {
+  const water = useMemo(() => {
+    const geometry = new THREE.PlaneGeometry(size, size);
+    const w = new (Water as any)(geometry, {
       textureWidth: 1024,
       textureHeight: 1024,
       waterNormals,
       sunDirection: new THREE.Vector3(1, 1, 1),
       sunColor: 0xffffff,
-      waterColor: 0x1ca3ec, // default
-      distortionScale: 1.8,
+      waterColor: PRESETS[preset]?.waterColor ?? 0x1ca3ec,
+      distortionScale: PRESETS[preset]?.distortionScale ?? 1.8,
       fog: !!scene.fog,
     });
-    water.rotation.x = -Math.PI / 2;
-    water.position.y = 3.05;
-    return water;
-  }, [waterNormals, size, scene.fog]);
-
-  // Update colors when preset changes
-  useEffect(() => {
-    if (waterObject) {
-      const cfg = PRESETS[preset] ?? PRESETS.cinematic;
-      waterObject.material.uniforms.waterColor.value.setHex(cfg.waterColor);
-      if (cfg.distortionScale) {
-        waterObject.material.uniforms.distortionScale.value = cfg.distortionScale;
-      }
-    }
-  }, [preset, waterObject]);
+    w.rotation.x = -Math.PI / 2;
+    w.position.y = 3.05;
+    return w;
+  }, [preset, size, waterNormals, scene.fog]);
 
   useFrame((_, delta) => {
-    if (waterObject.material.uniforms.time) {
-      waterObject.material.uniforms.time.value += delta;
+    if (water?.material?.uniforms?.time) {
+      water.material.uniforms.time.value += delta;
     }
   });
 
-  return <primitive object={waterObject} ref={waterRef} />;
+  return <primitive object={water} />;
 }
 
-// ---------------- ISLAND MODEL ----------------
+// ---------------- ISLAND ----------------
 function IslandModel({
-  url = "/models/island.glb",
-  yOffset = 4,
+  url = "/models/island_1.glb",
+  yOffset = 3,
   scale = 1,
 }: {
   url?: string;
@@ -104,32 +132,18 @@ function IslandModel({
     if (!scene) return;
     scene.position.set(0, yOffset, 0);
     scene.scale.set(scale, scale, scale);
-    scene.traverse((obj: any) => {
-      if (obj.isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-      }
-    });
   }, [scene, yOffset, scale]);
 
-  return (
-    <primitive
-      object={scene}
-    />
-  );
+  return <primitive object={scene} />;
 }
 
-// ---------------- CAMERA INTRO ANIMATION ----------------
-function CameraIntro({ enabled = true }: { enabled?: boolean }) {
+// ---------------- CAMERA INTRO ----------------
+function CameraIntro() {
   const { camera } = useThree();
 
   useEffect(() => {
-    if (!enabled) return;
-
     camera.position.set(200, 150, 300);
-
-    const tl = gsap.timeline();
-    tl.to(camera.position, {
+    gsap.to(camera.position, {
       x: -20,
       y: 10,
       z: 10,
@@ -137,11 +151,7 @@ function CameraIntro({ enabled = true }: { enabled?: boolean }) {
       ease: "power2.out",
       onUpdate: () => camera.updateProjectionMatrix(),
     });
-
-    return () => {
-      tl.kill();
-    };
-  }, [camera, enabled]);
+  }, [camera]);
 
   return null;
 }
@@ -151,51 +161,54 @@ export default function IslandScene({
   preset = "deep",
   showControls = true,
 }: {
-  preset?: keyof typeof PRESETS | string;
+  preset?: string;
   showControls?: boolean;
+}) {
+  const router = useRouter();
+  const [currentRound, setCurrentRound] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
-}) {const router = useRouter();
-  
+  const fetchUser = async () => {
+    try {
+      const data = await authService.getUserProfile();
+      if (data?.roundNo !== undefined) {
+        setCurrentRound(Number(data.roundNo));
+      }
+    } catch (e) {
+      console.error("Profile fetch failed", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+    window.addEventListener("focus", fetchUser);
+    return () => window.removeEventListener("focus", fetchUser);
+  }, []);
+
+  const handleNavigate = (path: string, required: number) => {
+    if (currentRound >= required) {
+      router.push(path);
+    } else {
+      toast.error("Level Locked", {
+        description: `You are on Round ${currentRound}. Complete previous rounds to unlock this.`,
+        style: {
+          background: "#1a0000",
+          color: "#ff4d4d",
+          border: "1px solid #ff0000",
+        },
+      });
+    }
+  };
+
   return (
-    <>
-
+    <div className="w-screen h-screen pointer-events-auto">
       <Canvas
         shadows
         camera={{ position: [50, 40, 70], fov: 45 }}
-        style={{ width: "100vw", height: "100vh" }}
+        style={{ width: "100vw", height: "100vh", pointerEvents: "auto" }}
       >
-        {/* 🌫️ CINEMATIC ATMOSPHERIC FOG */}
-        <fog attach="fog" args={["#cbe5ff", 0.0008]} />
-          
-        {/* ☁️ VOLUMETRIC CLOUDS */}
-        <Clouds material={THREE.MeshLambertMaterial}>
-          <Cloud
-            seed={1}
-            scale={2}
-            color="#ffffff"
-            opacity={0.35}
-            segments={20}
-            position={[0, 120, -80]}
-          />
-          <Cloud
-            seed={15}
-            scale={2.5}
-            color="#e6f5ff"
-            opacity={0.4}
-            segments={25}
-            position={[80, 150, -150]}
-          />
-          <Cloud
-            seed={9}
-            scale={1.8}
-            color="#ffffff"
-            opacity={0.3}
-            segments={18}
-            position={[-90, 110, -100]}
-          />
-        </Clouds>
-
-        {/* 🌄 SKYBOX */}
         <Environment
           files={[
             "/sky/px.webp",
@@ -208,115 +221,35 @@ export default function IslandScene({
           background
         />
 
-        <color attach="background" args={["#9fd3ff"]} />
-
         <ambientLight intensity={4} />
-        <directionalLight
-          castShadow
-          position={[150, 300, 150]}
-          intensity={0.5}
-        />
+        <directionalLight castShadow position={[150, 300, 150]} intensity={0.5} />
 
-        {/* 🌊 WATER */}
         <WaterPlane preset={preset} />
+        <IslandModel />
+        <CameraIntro />
 
-        {/* 🏝️ ISLAND */}
-        <IslandModel url="/models/island_1.glb" yOffset={3} scale={1} />
-
-        {/* 🎥 CAMERA ANIMATION */}
-        <CameraIntro enabled />
-
-        {/* 🎮 CONTROLS */}
         {showControls && (
           <OrbitControls
             enableDamping
+            dampingFactor={0.05}
             minPolarAngle={Math.PI * 0.2}
             maxPolarAngle={Math.PI * 0.45}
-            minAzimuthAngle={-Math.PI}
-            maxAzimuthAngle={Math.PI / 4}
-            enablePan
-            enableZoom
             minDistance={10}
             maxDistance={100}
           />
         )}
 
-        {/* ---------------- INTERACTIVE BUTTONS ---------------- */}
-
-        {/* 1. HOUSE / MAIN BASE */}
-        {/* 1. HOUSE / MAIN BASE */}
-        <Html
-          position={[-8.17, 3.62, 0.48]}
-          center
-          distanceFactor={15}
-          zIndexRange={[100, 0]}
-        >
-          <div
-            data-level="ENTER HOUSE"
-            className="
-              relative flex items-center justify-center
-              w-5 h-5
-              bg-white/20 rounded-full
-              border border-white/60
-              shadow-[0_0_15px_rgba(255,255,255,0.5)]
-              cursor-pointer
-              transition-all duration-300
-              hover:scale-125
-              group
-            "
-            onClick={() => router.push("/house")}
-          />
-        </Html>
-
-        {/* 2. THE STADIUM (Arena) */}
-        <Html
-          position={[-4.38, 4.92, -1.53]}
-          center
-          distanceFactor={20}
-          zIndexRange={[100, 0]}
-        >
-          <div
-            data-level="ENTER ARENA"
-            className="
-              relative flex items-center justify-center
-              w-6 h-6
-              bg-white/20 rounded-full
-              border border-white/60
-              shadow-[0_0_15px_rgba(255,255,255,0.5)]
-              cursor-pointer
-              transition-all duration-300
-              hover:scale-125
-              group
-            "
-            onClick={() => router.push("/arena")}
-          />
-        </Html>
-
-        {/* 3. THE RUINS */}
-        <Html
-          position={[-6.63, 3.91, -1.54]}
-          center
-          distanceFactor={20}
-          zIndexRange={[100, 0]}
-        >
-          <div
-            data-level="EXPLORE RUINS"
-            className="
-              relative flex items-center justify-center
-              w-5 h-5
-              bg-white/20 rounded-full
-              border border-white/60
-              shadow-[0_0_15px_rgba(255,255,255,0.5)]
-              cursor-pointer
-              transition-all duration-300
-              hover:scale-125
-              group
-            "
-            onClick={() => window.location.href = "/ruins"}
-          />
-        </Html>
+        {!isLoading && (
+          <>
+            <Indicator pos={[-8.17, 3.62, 0.48]} label="House Dreadhelm" requiredLevel={1} currentLevel={currentRound} onClick={() => handleNavigate("/house", 1)} />
+            <Indicator pos={[-8.17, 3.62, -1.5]} label="House Blackwyrm" requiredLevel={2} currentLevel={currentRound} onClick={() => handleNavigate("/house2", 2)} />
+            <Indicator pos={[-6.63, 3.91, -1.54]} label="The Ruins" requiredLevel={3} currentLevel={currentRound} onClick={() => handleNavigate("/ruins", 3)} />
+            <Indicator pos={[-5, 4, -1.2]} label="Moonveil Glade" requiredLevel={4} currentLevel={currentRound} onClick={() => handleNavigate("/village", 4)} />
+            <Indicator pos={[-4.38, 4.92, -1.53]} label="The Arena" requiredLevel={5} currentLevel={currentRound} onClick={() => handleNavigate("/arena", 5)} />
+            <Indicator pos={[-8.17, 4, -0.5]} label="Ironshade Peak" requiredLevel={6} currentLevel={currentRound} onClick={() => handleNavigate("/mountain", 6)} />
+          </>
+        )}
       </Canvas>
-
-    </>
+    </div>
   );
 }

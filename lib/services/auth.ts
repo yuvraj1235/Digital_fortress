@@ -1,8 +1,5 @@
 import { apiRequest } from "@/lib/api";
 
-/**
- * Helper to handle session storage after successful auth
- */
 const setSession = (data: any) => {
   if (data.status === 200 && data.token) {
     localStorage.setItem("df_token", data.token);
