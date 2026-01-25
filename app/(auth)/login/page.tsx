@@ -25,7 +25,7 @@ export default function LoginPage() {
       window.google.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         callback: handleGoogleResponse,
-        use_fedcm_for_prompt: true, // Recommended for modern browser security
+        use_fedcm_for_prompt: false, // Recommended for modern browser security
       });
     }
   }, [scriptLoaded]);
