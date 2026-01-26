@@ -9,6 +9,7 @@ import { useProgress } from "@react-three/drei";
 import BottomBar from "@/components/ShareIcon";
 import CustomCursor from "@/components/CustomCursor";
 import Snowfall from "react-snowfall";
+import Profile from "@/components/Profile";
 
 export default function Home() {
   /* 
@@ -99,7 +100,6 @@ export default function Home() {
 
       <CustomCursor />
       <LoadingScreen progress={effectiveProgress} />
-
       {/* 🔊 Background Audio */}
       <audio id="bg-audio" src="/sounds/waves.webm" autoPlay loop muted />
 
