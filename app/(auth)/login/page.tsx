@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/services/auth";
 import Link from "next/link";
 import Script from "next/script"; // Required for reliable script loading
+import { useAuth } from "@/contexts/AuthContext";
 
 declare global {
   interface Window {
@@ -30,21 +31,24 @@ export default function LoginPage() {
     }
   }, [scriptLoaded]);
 
+  const { setUser } = useAuth(); // Access setUser from context
+
   const handleGoogleResponse = async (response: any) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await loginUser({
         type: "1",
         accesstoken: response.credential,
       });
 
       if (data.status === 200 && data.token) {
-        // Update both storage types for middleware/API compatibility
-        localStorage.setItem("df_token", data.token);
-        document.cookie = `df_token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-        
+        // Update context immediately
+        setUser(data.user);
+
+        // Force router refresh closely followed by navigation
+        router.refresh();
         router.push("/home");
       } else if (data.status === 401) {
         setError("Account not found. Please register first.");
@@ -74,8 +78,8 @@ export default function LoginPage() {
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
       {/* Load Google SDK with explicit onLoad handler */}
-      <Script 
-        src="https://accounts.google.com/gsi/client" 
+      <Script
+        src="https://accounts.google.com/gsi/client"
         onLoad={() => setScriptLoaded(true)}
       />
 
@@ -114,8 +118,6 @@ export default function LoginPage() {
             />
             {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
           </button>
-
-          
         </div>
       </div>
     </div>

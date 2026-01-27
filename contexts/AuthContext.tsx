@@ -12,6 +12,7 @@ interface User {
   imageLink: string;
   score: number;
   roundNo: number;
+  rank?: number;
 }
 
 interface AuthContextType {
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem("df_token");
     const storedUser = localStorage.getItem("df_user");
-    
+
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -77,17 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        isAuthenticated: !!user, 
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
         isLoading,
         setUser: (u) => {
           setUser(u);
           if (u) localStorage.setItem("df_user", JSON.stringify(u));
         },
         updateUser,
-        logout 
+        logout
       }}
     >
       {children}
