@@ -40,7 +40,7 @@ export default function LeaderboardPage() {
         {/* LEADERBOARD TITLE (IMAGE BASED) */}
         <div className="relative mt-4">
           <Image
-            src="/leaderboard/head_rock.jpeg"
+            src="/leaderboard/head_rock.png"
             alt="Leaderboard"
             width={420}
             height={90}
@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
               >
                 {/* ROW BACKGROUND */}
                 <Image
-                  src="/leaderboard/rock.jpeg"
+                  src="/leaderboard/head_rock.png"
                   alt="Row Background"
                   fill
                   className="object-fill"
@@ -119,6 +119,5 @@ export default function LeaderboardPage() {
     </div>
   );
 }
-
 
 

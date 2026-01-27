@@ -25,7 +25,7 @@ export default function LoginPage() {
       window.google.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         callback: handleGoogleResponse,
-        use_fedcm_for_prompt: true, // Recommended for modern browser security
+        use_fedcm_for_prompt: false, // Recommended for modern browser security
       });
     }
   }, [scriptLoaded]);
@@ -115,12 +115,7 @@ export default function LoginPage() {
             {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
           </button>
 
-          <p className="text-center text-sm text-white/80 mt-2">
-            Don't have an account?{" "}
-            <Link href="/register" className="font-semibold text-amber-300 hover:underline">
-              REGISTER
-            </Link>
-          </p>
+          
         </div>
       </div>
     </div>

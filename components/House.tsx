@@ -6,7 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api"; 
-
+import ProceedButton from "@/components/Button";
 import { toast } from "sonner"; // Import Sonner
 
 export default function Panorama() {
@@ -63,6 +63,7 @@ export default function Panorama() {
   };
 
   return (
+    <div>
     <Canvas
       camera={{ fov: 75, position: [0, 0, 1] }}
       style={{ width: "100vw", height: "100vh" }}
@@ -72,6 +73,10 @@ export default function Panorama() {
       
    
     </Canvas>
+    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+        <ProceedButton round={currentRound} />
+      </div>
+      </div>
   );
 }
 
