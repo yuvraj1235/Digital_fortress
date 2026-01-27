@@ -17,9 +17,9 @@ function Navbar() {
       <div className="relative flex w-full items-center justify-between px-4 md:px-6 py-3 md:py-4">
 
         {/* LEFT: GLUG LOGO (clickable) */}
-        <div className="z-10 hover:scale-110 transition-transform brightness-40 pointer-events-auto">
+        <div className="z-10 hover:scale-110 transition-transform pointer-events-auto">
           <a href="https://nitdgplug.org/" target="_blank" rel="noreferrer">
-            <img src="/logo/glug.png" alt="GLUG" className="h-16 md:h-20" />
+            <img src="/logo/glug.png" alt="GLUG" className="h-12 md:h-16 opacity-[0.85]" />
           </a>
         </div>
 

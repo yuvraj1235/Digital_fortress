@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { apiRequest } from "@/lib/api"; 
+import { apiRequest } from "@/lib/api";
 import ProceedButton from "@/components/Button";
 import { toast } from "sonner"; // Import Sonner
 
@@ -18,9 +18,9 @@ export default function Panorama() {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const data = await apiRequest("quiz/getRound"); 
+        const data = await apiRequest("quiz/getRound");
         if (data.status === 200) {
-          setCurrentRound(data.question.round_number); 
+          setCurrentRound(data.question.round_number);
         }
       } catch (err) {
         console.error("Failed to fetch progress", err);
@@ -33,7 +33,7 @@ export default function Panorama() {
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
     const startAudio = () => {
-      bgMusicRef.current?.play().catch(() => {});
+      bgMusicRef.current?.play().catch(() => { });
       window.removeEventListener("click", startAudio);
     };
     window.addEventListener("click", startAudio);
@@ -45,7 +45,7 @@ export default function Panorama() {
   }, []);
 
   const handleNavigate = (path: string, levelRequired: number) => {
-    clickSoundRef.current?.play().catch(() => {});
+    clickSoundRef.current?.play().catch(() => { });
 
     if (currentRound >= levelRequired) {
       router.push(path);
@@ -64,19 +64,19 @@ export default function Panorama() {
 
   return (
     <div>
-    <Canvas
-      camera={{ fov: 75, position: [0, 0, 1] }}
-      style={{ width: "100vw", height: "100vh" }}
-    >
-      <PanoramaSphere />
-      <OrbitControls enableZoom={false} enablePan={false} />
-      
-   
-    </Canvas>
-    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+      <Canvas
+        camera={{ fov: 75, position: [0, 0, 1] }}
+        style={{ width: "100vw", height: "100vh" }}
+      >
+        <PanoramaSphere />
+        <OrbitControls enableZoom={false} enablePan={false} />
+
+
+      </Canvas>
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
         <ProceedButton round={currentRound} />
       </div>
-      </div>
+    </div>
   );
 }
 

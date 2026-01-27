@@ -5,11 +5,35 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Trophy, Target, ChevronDown, User, Shield } from "lucide-react";
 
+import { authService } from "@/lib/services/authService";
+
 export default function Profile() {
     const router = useRouter();
     const pathname = usePathname();
     const { user, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [currentRound, setCurrentRound] = useState<number | null>(null);
+      const [isLoading, setIsLoading] = useState(true);
+    
+      const fetchUser = async () => {
+        try {
+          const data = await authService.getUserProfile();
+          if (data?.roundNo !== undefined) {
+            setCurrentRound(Number(data.roundNo));
+          }
+        } catch (e) {
+          console.error("Profile fetch failed", e);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
+      useEffect(() => {
+        fetchUser();
+        window.addEventListener("focus", fetchUser);
+        return () => window.removeEventListener("focus", fetchUser);
+      }, []);
+    
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +52,25 @@ export default function Profile() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    // Fetch Current Round
+    useEffect(() => {
+        const fetchRound = async () => {
+            if (user) {
+                try {
+                    // Start fetching round data using the existing service
+                    const { getRound } = await import("@/lib/services/quiz");
+                    const data = await getRound();
+                    if (data && data.question && data.question.round_number) {
+                        setCurrentRound(data.question.round_number);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch current round:", error);
+                }
+            }
+        };
+        fetchRound();
+    }, [user]);
 
     const handleLogout = async () => {
         await logout();
@@ -90,7 +133,9 @@ export default function Profile() {
                                 </div>
                                 <div className="flex flex-col min-w-0">
                                     <div className="flex items-center gap-2 mb-0.5">
-                                        <h3 className="text-lg font-bold text-[#ffecd1] font-serif tracking-wide truncate">{user.name || "Unknown Agent"}</h3>
+                                        <h3 className="text-lg font-bold text-[#ffecd1] font-serif tracking-wide truncate">
+                                            {(user.name && !user.name.includes('@')) ? user.name : (user.first_name || user.name?.split('@')[0] || "Unknown Agent")}
+                                        </h3>
                                         <Shield className="w-3.5 h-3.5 text-[#C6A355]" />
                                     </div>
                                     <p className="text-[10px] text-[#C6A355] font-mono tracking-widest uppercase opacity-80 mb-1">Authenticated</p>
@@ -102,30 +147,7 @@ export default function Profile() {
                         {/* Content Body */}
                         <div className="p-5 space-y-4">
 
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-3">
-                                {/* Rank Card */}
-                                <div className="group relative overflow-hidden rounded bg-gradient-to-br from-[#1a1500] to-[#0a0800] p-3 border border-[#C6A355]/20 hover:border-[#C6A355]/50 transition-colors">
-                                    <div className="absolute top-0 right-0 p-1 opacity-20">
-                                        <Trophy className="w-5 h-5 text-[#C6A355]" />
-                                    </div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] text-[#C6A355] font-bold block mb-1">Global Rank</span>
-                                    <div className="text-2xl font-bold text-[#ffecd1] font-mono tracking-tight group-hover:scale-105 transition-transform origin-left">
-                                        #{user.rank ?? '-'}
-                                    </div>
-                                </div>
-
-                                {/* Score Card */}
-                                <div className="group relative overflow-hidden rounded bg-gradient-to-br from-[#1a1500] to-[#0a0800] p-3 border border-[#C6A355]/20 hover:border-[#C6A355]/50 transition-colors">
-                                    <div className="absolute top-0 right-0 p-1 opacity-20">
-                                        <Target className="w-5 h-5 text-[#C6A355]" />
-                                    </div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] text-[#C6A355] font-bold block mb-1">Total Score</span>
-                                    <div className="text-2xl font-bold text-[#ffecd1] font-mono tracking-tight group-hover:scale-105 transition-transform origin-left">
-                                        {user.score || 0}
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Stats Grid Removed */}
 
                             {/* Round Info Banner */}
                             <div className="relative rounded bg-[#1a1500] border border-[#C6A355]/30 p-3 overflow-hidden group">
@@ -133,7 +155,9 @@ export default function Profile() {
                                 <div className="relative flex justify-between items-center z-10">
                                     <div className="flex flex-col">
                                         <span className="text-[9px] text-[#C6A355] uppercase tracking-widest font-bold mb-0.5">Current Objective</span>
-                                        <span className="text-lg font-bold text-[#ffecd1] font-serif">Round {user.roundNo || 1}</span>
+                                        <span className="text-lg font-bold text-[#ffecd1] font-serif">
+                                            Round {currentRound ?? user.roundNo ?? "..."}
+                                        </span>
                                     </div>
                                     <div className="h-2 w-2 rounded-full bg-[#C6A355] shadow-[0_0_10px_#C6A355] animate-pulse" />
                                 </div>

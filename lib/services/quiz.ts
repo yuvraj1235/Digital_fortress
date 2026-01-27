@@ -2,7 +2,7 @@ import { apiRequest } from "@/lib/api";
 
 export async function getRound() {
   // Try adding the trailing slash '/'
-  return apiRequest("quiz/getRound"); 
+  return apiRequest("quiz/getRound/");
 }
 
 export async function checkRound(payload: { answer: string }) {
