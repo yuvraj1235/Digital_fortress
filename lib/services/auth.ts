@@ -33,6 +33,21 @@ export async function loginUser(payload: {
   return data;
 }
 
+/* ---------- REGISTER ---------- */
+export async function registerUser(payload: {
+  type: string;
+  accesstoken?: string;
+  accesscode?: string;
+}) {
+  const data = await apiRequest("quiz/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  setSession(data);
+  return data;
+}
+
 /* ---------- LOGOUT ---------- */
 export async function logoutUser() {
   try {
