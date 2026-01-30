@@ -1,27 +1,32 @@
 // lib/api.ts
 
-const API_BASE_URL = "/api";
+const RAW_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const API_BASE_URL = RAW_API_BASE_URL
+  ? RAW_API_BASE_URL.replace(/\/$/, "")
+  : "";
 
 export async function apiRequest(
   endpoint: string,
   options: RequestInit = {}
 ) {
-  // 🔴 FORCE client-side token only
+  const cleanEndpoint = endpoint.replace(/^\//, "");
+  const url = `${API_BASE_URL}/${cleanEndpoint}`;
+
+  // ✅ ALWAYS read token here
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("df_token")
       : null;
 
-  console.log("🔐 Using token:", token); // MUST NOT be null
-
-  const cleanEndpoint = endpoint.replace(/^\//, "");
-  const url = `${API_BASE_URL}/${cleanEndpoint}`;
+  console.log("🔐 Using token:", token);
+  console.log("➡️ API Request:", url);
 
   const res = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Token ${token}` }),
+      ...(token ? { Authorization: `Token ${token}` } : {}),
       ...options.headers,
     },
   });
@@ -32,7 +37,7 @@ export async function apiRequest(
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    data = { message: "Invalid JSON response" };
+    data = { message: "Invalid JSON from server" };
   }
 
   if (!res.ok) {
