@@ -1,14 +1,6 @@
 // lib/api.ts
 
-const RAW_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
-if (!RAW_API_BASE_URL) {
-  console.error("❌ NEXT_PUBLIC_API_URL is NOT defined!");
-}
-
-const API_BASE_URL = RAW_API_BASE_URL
-  ? RAW_API_BASE_URL.replace(/\/$/, "")
-  : "";
+const API_BASE_URL = "/api";
 
 console.log("🌐 API_BASE_URL =", API_BASE_URL);
 
@@ -16,19 +8,11 @@ export async function apiRequest(
   endpoint: string,
   options: RequestInit = {}
 ) {
-  if (!API_BASE_URL) {
-    throw {
-      status: 0,
-      message: "API base URL not configured. Set NEXT_PUBLIC_API_URL."
-    };
-  }
-
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("df_token")
       : null;
 
-  // Normalize endpoint (remove leading slash)
   const cleanEndpoint = endpoint.replace(/^\//, "");
   const url = `${API_BASE_URL}/${cleanEndpoint}`;
 
@@ -60,7 +44,6 @@ export async function apiRequest(
       data = { message: "Invalid JSON response from server" };
     }
 
-    // Auto logout on token expiry
     if (res.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("df_token");
       localStorage.removeItem("df_user");

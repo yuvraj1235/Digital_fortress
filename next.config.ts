@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://13.53.205.86/:path*",
-
-        // 🔴 CHANGE to your REAL backend HTTPS URL
+        destination: "http://13.60.47.208/:path*", // ✅ CORRECT
       },
     ];
   },
