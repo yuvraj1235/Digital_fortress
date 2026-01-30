@@ -1,16 +1,26 @@
 import { apiRequest } from "@/lib/api";
 
 const setSession = (data: any) => {
-  if (data.status === 200 && data.token) {
-    // Client storage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("df_token", data.token);
+  // Support different backend token keys
+  const token = data.token || data.auth_token || data.key;
+
+  console.log("🔑 Setting session, token =", token);
+
+  if (!token) {
+    console.error("❌ Login response missing token:", data);
+    return;
+  }
+
+  // Client storage
+  if (typeof window !== "undefined") {
+    localStorage.setItem("df_token", token);
+    if (data.user) {
       localStorage.setItem("df_user", JSON.stringify(data.user));
     }
-
-    // Server + Client (cookie for SSR)
-    document.cookie = `df_token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
   }
+
+  // Cookie for SSR + proxy
+  document.cookie = `df_token=${token}; path=/; max-age=86400; SameSite=Lax`;
 };
 
 /* ---------- LOGIN ---------- */
@@ -23,6 +33,8 @@ export async function loginUser(payload: {
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+  console.log("🟢 LOGIN RESPONSE:", data);
 
   setSession(data);
   return data;
@@ -39,6 +51,8 @@ export async function registerUser(payload: {
     body: JSON.stringify(payload),
   });
 
+  console.log("🟢 REGISTER RESPONSE:", data);
+
   setSession(data);
   return data;
 }
@@ -50,7 +64,7 @@ export async function logoutUser() {
       method: "POST",
     });
   } catch (err) {
-    console.error("Server-side logout failed:", err);
+    console.warn("⚠️ Server-side logout failed, cleaning locally anyway");
   } finally {
     if (typeof window !== "undefined") {
       localStorage.removeItem("df_token");
