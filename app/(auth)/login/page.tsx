@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/services/auth";
-import Link from "next/link";
-import Script from "next/script"; // Required for reliable script loading
+import Script from "next/script";
 import { useAuth } from "@/contexts/AuthContext";
 
 declare global {
@@ -17,21 +16,19 @@ declare global {
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false); // Track script status
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   const router = useRouter();
+  const { setUser } = useAuth();
 
-  // Initialize Google when script is ready
   useEffect(() => {
     if (scriptLoaded && window.google) {
       window.google.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         callback: handleGoogleResponse,
-        use_fedcm_for_prompt: false, // Recommended for modern browser security
+        use_fedcm_for_prompt: false,
       });
     }
   }, [scriptLoaded]);
-
-  const { setUser } = useAuth(); // Access setUser from context
 
   const handleGoogleResponse = async (response: any) => {
     try {
@@ -43,22 +40,23 @@ export default function LoginPage() {
         accesstoken: response.credential,
       });
 
-      if (data.status === 200 && data.token) {
-        // Update context immediately
-        setUser(data.user);
+      // ✅ TRUST LOCAL STORAGE, NOT RESPONSE SHAPE
+      const token = localStorage.getItem("df_token");
 
-        // Force router refresh closely followed by navigation
+      if (token) {
+        setUser(data.user || null);
         router.refresh();
         router.push("/home");
-      } else if (data.status === 401) {
-        setError("Account not found. Please register first.");
       } else {
-        throw new Error(data.message || "Login failed");
+        throw new Error("Login failed: token not found");
       }
     } catch (err: any) {
       console.error("Login error:", err);
-      const errorMessage = err.data?.message || err.message || "An unexpected error occurred.";
-      setError(errorMessage);
+      setError(
+        err?.data?.message ||
+        err?.message ||
+        "Authentication failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -77,7 +75,6 @@ export default function LoginPage() {
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
-      {/* Load Google SDK with explicit onLoad handler */}
       <Script
         src="https://accounts.google.com/gsi/client"
         onLoad={() => setScriptLoaded(true)}
