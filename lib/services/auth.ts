@@ -41,9 +41,8 @@ export async function loginUser(payload: {
 
   setSession(data);
   
-  // ❌ REMOVE THIS LINE - it's causing the 401 error
-  // await apiRequest("quiz/user");
-  
+  // ✅ NO ADDITIONAL API CALL - just return the data
+  // The user profile is already in data.user
   return data;
 }
 
@@ -60,9 +59,8 @@ export async function registerUser(payload: {
 
   setSession(data);
   
-  // ❌ REMOVE THIS LINE - it's causing the 401 error
-  // await apiRequest("quiz/user");
-  
+  // ✅ NO ADDITIONAL API CALL - just return the data
+  // The user profile is already in data.user
   return data;
 }
 
@@ -70,8 +68,9 @@ export async function registerUser(payload: {
 export async function logoutUser() {
   try {
     await apiRequest("quiz/auth/logout", { method: "POST" });
-  } catch {}
-  finally {
+  } catch (error) {
+    console.error("Logout API call failed:", error);
+  } finally {
     localStorage.removeItem("df_token");
     localStorage.removeItem("df_user");
     

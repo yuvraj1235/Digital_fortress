@@ -1,6 +1,11 @@
+// lib/services/authService.ts
 import { apiRequest } from "@/lib/api";
 
 export const authService = {
+  /**
+   * Fetch current user profile
+   * Call this ONLY when you need fresh data, not immediately after login
+   */
   async getUserProfile() {
     console.log("👤 Fetching profile...");
 
@@ -19,6 +24,8 @@ export const authService = {
     } catch (err: any) {
       if (err.status === 401) {
         console.warn("⚠️ Not authenticated");
+        // Optionally redirect to login
+        // window.location.href = "/login";
       }
       throw err;
     }
@@ -27,10 +34,12 @@ export const authService = {
   async logout() {
     try {
       await apiRequest("quiz/auth/logout", { method: "POST" });
-    } catch {}
-    finally {
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
       localStorage.removeItem("df_token");
       localStorage.removeItem("df_user");
+      document.cookie = "df_token=; path=/; max-age=0";
       window.location.href = "/login";
     }
   },
