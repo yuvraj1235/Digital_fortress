@@ -35,6 +35,10 @@ export async function loginUser(payload: {
   });
 
   setSession(data);
+
+  // 🔑 VERY IMPORTANT: initialize Player
+  await apiRequest("quiz/user");
+
   return data;
 }
 
@@ -50,13 +54,17 @@ export async function registerUser(payload: {
   });
 
   setSession(data);
+
+  // 🔑 VERY IMPORTANT: initialize Player
+  await apiRequest("quiz/user");
+
   return data;
 }
 
 /* ---------- LOGOUT ---------- */
 export async function logoutUser() {
   try {
-    await apiRequest("quiz/auth/logout/", { method: "POST" });
+    await apiRequest("quiz/auth/logout", { method: "POST" });
   } catch {}
   finally {
     localStorage.removeItem("df_token");
