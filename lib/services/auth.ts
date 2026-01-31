@@ -1,3 +1,4 @@
+// auth.ts
 import { apiRequest } from "@/lib/api";
 
 const setSession = (data: any) => {
@@ -18,8 +19,10 @@ const setSession = (data: any) => {
 
   localStorage.setItem("df_token", token);
 
+  // ✅ Store user data properly
   if (data.user) {
     localStorage.setItem("df_user", JSON.stringify(data.user));
+    console.log("🟢 STORED USER =", data.user);
   }
 };
 
@@ -36,9 +39,6 @@ export async function loginUser(payload: {
 
   setSession(data);
 
-  // 🔑 VERY IMPORTANT: initialize Player
-  await apiRequest("quiz/user");
-
   return data;
 }
 
@@ -54,9 +54,6 @@ export async function registerUser(payload: {
   });
 
   setSession(data);
-
-  // 🔑 VERY IMPORTANT: initialize Player
-  await apiRequest("quiz/user");
 
   return data;
 }
