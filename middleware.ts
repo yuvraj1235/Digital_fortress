@@ -5,6 +5,13 @@ const PROTECTED_ROUTES = [
   "/home",
   "/leaderboard",
   "/profile", // Added profile to protected list
+  "/house",
+  "/house2",
+  "/ruins",
+  "/leaderboard",
+  "/village",
+  "/arena",
+
 ];
 
 export function middleware(request: NextRequest) {
