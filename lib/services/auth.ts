@@ -1,4 +1,4 @@
-// auth.ts
+// lib/services/auth.ts
 import { apiRequest } from "@/lib/api";
 
 const setSession = (data: any) => {
@@ -19,7 +19,6 @@ const setSession = (data: any) => {
 
   localStorage.setItem("df_token", token);
 
-  // ✅ Store user data properly
   if (data.user) {
     localStorage.setItem("df_user", JSON.stringify(data.user));
     console.log("🟢 STORED USER =", data.user);
@@ -39,6 +38,23 @@ export async function loginUser(payload: {
 
   setSession(data);
 
+  // ✅ VERIFY player exists by trying to fetch round
+  try {
+    await apiRequest("quiz/getRound");
+  } catch (error: any) {
+    // If player doesn't exist, logout and force re-registration
+    if (error.needsReauth || error.status === 500) {
+      console.error("❌ Player mismatch detected, clearing session");
+      localStorage.removeItem("df_token");
+      localStorage.removeItem("df_user");
+      throw {
+        ...error,
+        message: "Account setup incomplete. Please logout from Google and register again.",
+        forceLogout: true
+      };
+    }
+  }
+
   return data;
 }
 
@@ -54,6 +70,22 @@ export async function registerUser(payload: {
   });
 
   setSession(data);
+
+  // ✅ VERIFY player was created properly
+  try {
+    await apiRequest("quiz/getRound");
+  } catch (error: any) {
+    if (error.needsReauth || error.status === 500) {
+      console.error("❌ Player creation failed");
+      localStorage.removeItem("df_token");
+      localStorage.removeItem("df_user");
+      throw {
+        ...error,
+        message: "Registration failed. Please try again.",
+        forceLogout: true
+      };
+    }
+  }
 
   return data;
 }

@@ -23,48 +23,52 @@ export default function LoginPage() {
   const { setUser } = useAuth();
 
   /* ---------------- GOOGLE CALLBACK ---------------- */
-  const handleGoogleResponse = useCallback(
-    async (response: any) => {
-      try {
-        setLoading(true);
-        setError(null);
+// app/login/page.tsx
+const handleGoogleResponse = useCallback(
+  async (response: any) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        await loginUser({
-          type: "1", // Google
-          accesstoken: response.credential,
-        });
+      await loginUser({
+        type: "1",
+        accesstoken: response.credential,
+      });
 
-        // ✅ TRUST STORAGE, NOT RESPONSE SHAPE
-        const token = localStorage.getItem("df_token");
+      const token = localStorage.getItem("df_token");
 
-        if (!token) {
-          throw new Error("Login failed: token not found");
-        }
+      if (!token) {
+        throw new Error("Login failed: token not found");
+      }
 
-        // Optional: restore user from storage
-        const storedUser = localStorage.getItem("df_user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
+      const storedUser = localStorage.getItem("df_user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
 
-        // ✅ Small delay avoids backend race issues
-        setTimeout(() => {
-          router.push("/home");
-        }, 500);
+      setTimeout(() => {
+        router.push("/home");
+      }, 500);
 
-      } catch (err: any) {
-        console.error("Login error:", err);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      
+      // ✅ Handle force logout case
+      if (err.forceLogout) {
+        setError(err.message + " Please logout from your Google account in another tab, then try again.");
+      } else {
         setError(
           err?.data?.message ||
           err?.message ||
           "Authentication failed"
         );
-      } finally {
-        setLoading(false);
       }
-    },
-    [router, setUser]
-  );
+    } finally {
+      setLoading(false);
+    }
+  },
+  [router, setUser]
+);
 
   /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
