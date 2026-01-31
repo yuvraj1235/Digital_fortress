@@ -1,9 +1,10 @@
+// app/login/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
-import { loginUser } from "@/lib/services/auth";
+import { loginUser, registerUser } from "@/lib/services/auth";
 import Script from "next/script";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,55 +23,70 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuth();
 
-  /* ---------------- GOOGLE CALLBACK ---------------- */
-// app/login/page.tsx
-const handleGoogleResponse = useCallback(
-  async (response: any) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const handleGoogleResponse = useCallback(
+    async (response: any) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      await loginUser({
-        type: "1",
-        accesstoken: response.credential,
-      });
+        // ✅ TRY LOGIN FIRST
+        try {
+          await loginUser({
+            type: "1",
+            accesstoken: response.credential,
+          });
+        } catch (loginError: any) {
+          // If login fails with 401 (not registered), try register
+          if (loginError.status === 401) {
+            console.log("User not registered, trying registration...");
+            await registerUser({
+              type: "1",
+              accesstoken: response.credential,
+            });
+          } else {
+            throw loginError;
+          }
+        }
 
-      const token = localStorage.getItem("df_token");
+        const token = localStorage.getItem("df_token");
 
-      if (!token) {
-        throw new Error("Login failed: token not found");
+        if (!token) {
+          throw new Error("Authentication failed: token not found");
+        }
+
+        const storedUser = localStorage.getItem("df_user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+
+        setTimeout(() => {
+          router.push("/home");
+        }, 500);
+
+      } catch (err: any) {
+        console.error("Login error:", err);
+        
+        if (err.forceLogout) {
+          setError(
+            "Account setup incomplete. Please contact support or try these steps:\n" +
+            "1. Logout from Google completely\n" +
+            "2. Clear browser cache\n" +
+            "3. Try again"
+          );
+        } else {
+          setError(
+            err?.data?.message ||
+            err?.message ||
+            "Authentication failed"
+          );
+        }
+      } finally {
+        setLoading(false);
       }
+    },
+    [router, setUser]
+  );
 
-      const storedUser = localStorage.getItem("df_user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-
-      setTimeout(() => {
-        router.push("/home");
-      }, 500);
-
-    } catch (err: any) {
-      console.error("Login error:", err);
-      
-      // ✅ Handle force logout case
-      if (err.forceLogout) {
-        setError(err.message + " Please logout from your Google account in another tab, then try again.");
-      } else {
-        setError(
-          err?.data?.message ||
-          err?.message ||
-          "Authentication failed"
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  },
-  [router, setUser]
-);
-
-  /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
     if (!scriptLoaded || !window.google) return;
 
@@ -89,7 +105,6 @@ const handleGoogleResponse = useCallback(
     window.google.accounts.id.prompt();
   };
 
-  /* ---------------- UI ---------------- */
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
@@ -118,11 +133,11 @@ const handleGoogleResponse = useCallback(
           </h2>
 
           <p className="text-white/70 text-sm">
-            Login using your Google account
+            Login or Register with Google
           </p>
 
           {error && (
-            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
+            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm whitespace-pre-line">
               {error}
             </div>
           )}
@@ -140,13 +155,9 @@ const handleGoogleResponse = useCallback(
             {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
           </button>
 
-          {/* 👇 Go to Register */}
-          <Link
-            href="/register"
-            className="text-sm text-white/70 hover:text-white underline transition"
-          >
-            New here? Create an account
-          </Link>
+          <p className="text-xs text-white/50 mt-2">
+            Automatically handles login or registration
+          </p>
         </div>
       </div>
     </div>
