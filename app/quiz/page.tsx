@@ -1,3 +1,4 @@
+// app/home/page.tsx (or wherever your quiz page is)
 "use client";
 
 import Navbar from "@/components/Navbar";
@@ -22,6 +23,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [authError, setAuthError] = useState(false); // NEW
 
   useEffect(() => {
     initRound();
@@ -37,6 +39,7 @@ export default function QuizPage() {
   const fetchCurrentRound = async () => {
     try {
       setError("");
+      setAuthError(false); // NEW
       const data = await apiRequest("quiz/getRound");
       if (data.status === 200) {
         setRoundData(data.question);
@@ -44,7 +47,20 @@ export default function QuizPage() {
       } else if (data.status === 410) {
         setError("The quiz has not started yet or has ended.");
       }
-    } catch {
+    } catch (err: any) {
+      // ✅ Handle auth error
+      if (err.needsReauth || (err.status === 500 && err.message.includes("account is incomplete"))) {
+        setAuthError(true);
+        setError(err.message || "Please register again with Google");
+        
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          router.push("/register?error=incomplete_profile");
+        }, 3000);
+        return;
+      }
+
+      // Fallback demo data
       setRoundData({
         question:
           "The Golden Ratio is hidden within the architecture of the Parthenon. Find the next sequence.",
@@ -58,7 +74,13 @@ export default function QuizPage() {
     try {
       const data = await apiRequest("quiz/getClue");
       if (data.status === 200) setClues(data.clues);
-    } catch {
+    } catch (err: any) {
+      // ✅ Handle auth error
+      if (err.needsReauth) {
+        return; // Already handled in fetchCurrentRound
+      }
+
+      // Fallback demo data
       setClues([
         { id: 1, question: "Look near the ancient pillars.", solved: false },
         { id: 2, question: "Where the shadow falls at noon.", solved: true },
@@ -84,6 +106,12 @@ export default function QuizPage() {
         alert("Wrong Answer. Try again!");
       }
     } catch (err: any) {
+      // ✅ Handle auth error
+      if (err.needsReauth) {
+        router.push("/register?error=incomplete_profile");
+        return;
+      }
+
       alert(err.data?.message || "Error submitting answer.");
     } finally {
       setSubmitting(false);
@@ -92,12 +120,10 @@ export default function QuizPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
-      {/* Make sure Navbar is ABOVE background */}
       <div className="relative z-[60]">
         <Navbar />
       </div>
 
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/bg.jpeg"
@@ -109,10 +135,7 @@ export default function QuizPage() {
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
-      {/* ================= HEADER BUTTONS (FIXED) ================= */}
       <div className="absolute top-0 left-0 w-full z-50 flex items-start justify-between p-4 min-h-[5rem]">
-
-        {/* Leaderboard Button */}
         <button
           onClick={() => router.push("/leaderboard")}
           className="hidden md:block absolute left-[15%] top-0 w-38 h-32 
@@ -126,7 +149,6 @@ export default function QuizPage() {
           />
         </button>
 
-        {/* Rules Button */}
         <button
           onClick={() => setShowRules(true)}
           className="hidden md:block absolute right-[15%] top-0 w-39 h-34 
@@ -140,18 +162,23 @@ export default function QuizPage() {
           />
         </button>
       </div>
-      {/* ========================================================== */}
 
-      {/* Main Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4 pt-32 pb-32 md:pt-4 md:pb-4">
         <div className="flex flex-col md:flex-row w-[calc(95%-20px)] md:w-[calc(80%-20px)] max-w-6xl h-[70vh] md:h-[60vh] bg-[#2D1B13]/90 rounded-xl overflow-hidden shadow-[0_0_60px_rgba(255,230,150,0.5)] translate-y-10 border-4 border-[#1a100c] backdrop-blur-sm">
 
-          {/* Question */}
           <div className="w-full md:w-1/2 p-8 flex flex-col justify-center items-center">
             {loading ? (
               <p className="text-[#C6AD8B] font-serif text-xl text-center">
                 Loading...
               </p>
+            ) : authError ? (
+              // ✅ NEW: Auth error display
+              <div className="w-full max-w-md space-y-4 text-center">
+                <p className="text-red-400 font-serif text-lg">{error}</p>
+                <p className="text-[#C6AD8B] font-serif text-sm">
+                  Redirecting to registration...
+                </p>
+              </div>
             ) : error ? (
               <p className="text-red-400 font-serif text-center">{error}</p>
             ) : (
@@ -187,14 +214,12 @@ export default function QuizPage() {
             )}
           </div>
 
-          {/* Map */}
           <div className="w-full md:w-1/2 p-4">
             <MyMap center={mapCentre} clues={clues} />
           </div>
         </div>
       </div>
 
-      {/* Modals */}
       <Rules open={showRules} onClose={() => setShowRules(false)} />
       {showClues && (
         <ClueBox

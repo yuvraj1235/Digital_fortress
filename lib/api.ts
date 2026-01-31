@@ -50,6 +50,22 @@ export async function apiRequest(
   if (!res.ok) {
     console.warn("⚠️ Backend error:", res.status, text);
 
+    // ✅ Special handling for Player DoesNotExist error
+    if (res.status === 500 && text.includes("Player matching query does not exist")) {
+      // Clear invalid session
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("df_token");
+        localStorage.removeItem("df_user");
+      }
+      
+      throw {
+        status: 500,
+        data,
+        message: "Your account is incomplete. Please register again using Google.",
+        needsReauth: true
+      };
+    }
+
     throw {
       status: res.status,
       data,
