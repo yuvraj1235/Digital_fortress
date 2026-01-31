@@ -17,11 +17,14 @@ const setSession = (data: any) => {
     return;
   }
 
+  // ✅ Store in BOTH localStorage AND cookies
   localStorage.setItem("df_token", token);
+  
+  // ✅ Set cookie with proper settings
+  document.cookie = `df_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
 
   if (data.user) {
     localStorage.setItem("df_user", JSON.stringify(data.user));
-    console.log("🟢 STORED USER =", data.user);
   }
 };
 
@@ -37,24 +40,6 @@ export async function loginUser(payload: {
   });
 
   setSession(data);
-
-  // ✅ VERIFY player exists by trying to fetch round
-  try {
-    await apiRequest("quiz/getRound");
-  } catch (error: any) {
-    // If player doesn't exist, logout and force re-registration
-    if (error.needsReauth || error.status === 500) {
-      console.error("❌ Player mismatch detected, clearing session");
-      localStorage.removeItem("df_token");
-      localStorage.removeItem("df_user");
-      throw {
-        ...error,
-        message: "Account setup incomplete. Please logout from Google and register again.",
-        forceLogout: true
-      };
-    }
-  }
-
   return data;
 }
 
@@ -70,23 +55,6 @@ export async function registerUser(payload: {
   });
 
   setSession(data);
-
-  // ✅ VERIFY player was created properly
-  try {
-    await apiRequest("quiz/getRound");
-  } catch (error: any) {
-    if (error.needsReauth || error.status === 500) {
-      console.error("❌ Player creation failed");
-      localStorage.removeItem("df_token");
-      localStorage.removeItem("df_user");
-      throw {
-        ...error,
-        message: "Registration failed. Please try again.",
-        forceLogout: true
-      };
-    }
-  }
-
   return data;
 }
 
@@ -98,6 +66,10 @@ export async function logoutUser() {
   finally {
     localStorage.removeItem("df_token");
     localStorage.removeItem("df_user");
+    
+    // ✅ Also remove the cookie
+    document.cookie = "df_token=; path=/; max-age=0";
+    
     window.location.href = "/login";
   }
 }

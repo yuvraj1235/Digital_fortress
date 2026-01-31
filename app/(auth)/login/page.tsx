@@ -1,10 +1,9 @@
-// app/login/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
-import { loginUser, registerUser } from "@/lib/services/auth";
+import { loginUser } from "@/lib/services/auth";
 import Script from "next/script";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,63 +22,49 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuth();
 
+  /* ---------------- GOOGLE CALLBACK ---------------- */
   const handleGoogleResponse = useCallback(
     async (response: any) => {
       try {
         setLoading(true);
         setError(null);
 
-        // ✅ TRY LOGIN FIRST
-        try {
-          await loginUser({
-            type: "1",
-            accesstoken: response.credential,
-          });
-        } catch (loginError: any) {
-          // If login fails with 401 (not registered), try register
-          if (loginError.status === 401) {
-            console.log("User not registered, trying registration...");
-            await registerUser({
-              type: "1",
-              accesstoken: response.credential,
-            });
-          } else {
-            throw loginError;
-          }
-        }
+        console.log("🔵 Starting login process...");
 
+        const loginData = await loginUser({
+          type: "1", // Google
+          accesstoken: response.credential,
+        });
+
+        console.log("🔵 Login data received:", loginData);
+
+        // ✅ TRUST STORAGE, NOT RESPONSE SHAPE
         const token = localStorage.getItem("df_token");
 
         if (!token) {
-          throw new Error("Authentication failed: token not found");
+          throw new Error("Login failed: token not found");
         }
 
+        console.log("🔵 Token found in localStorage:", token);
+
+        // Optional: restore user from storage
         const storedUser = localStorage.getItem("df_user");
         if (storedUser) {
           setUser(JSON.parse(storedUser));
+          console.log("🔵 User set in context");
         }
 
-        setTimeout(() => {
-          router.push("/home");
-        }, 500);
-
-      } catch (err: any) {
-        console.error("Login error:", err);
+        // ✅ Redirect immediately
+        console.log("🔵 Redirecting to /home...");
+        router.push("/home");
         
-        if (err.forceLogout) {
-          setError(
-            "Account setup incomplete. Please contact support or try these steps:\n" +
-            "1. Logout from Google completely\n" +
-            "2. Clear browser cache\n" +
-            "3. Try again"
-          );
-        } else {
-          setError(
-            err?.data?.message ||
-            err?.message ||
-            "Authentication failed"
-          );
-        }
+      } catch (err: any) {
+        console.error("❌ Login error:", err);
+        setError(
+          err?.data?.message ||
+          err?.message ||
+          "Authentication failed"
+        );
       } finally {
         setLoading(false);
       }
@@ -87,6 +72,7 @@ export default function LoginPage() {
     [router, setUser]
   );
 
+  /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
     if (!scriptLoaded || !window.google) return;
 
@@ -105,6 +91,7 @@ export default function LoginPage() {
     window.google.accounts.id.prompt();
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
@@ -133,12 +120,18 @@ export default function LoginPage() {
           </h2>
 
           <p className="text-white/70 text-sm">
-            Login or Register with Google
+            Login using your Google account
           </p>
 
           {error && (
-            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm whitespace-pre-line">
+            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
               {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="w-full p-3 bg-blue-500/20 border border-blue-500 rounded text-blue-300 text-sm">
+              Logging in, please wait...
             </div>
           )}
 
@@ -155,9 +148,13 @@ export default function LoginPage() {
             {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
           </button>
 
-          <p className="text-xs text-white/50 mt-2">
-            Automatically handles login or registration
-          </p>
+          {/* 👇 Go to Register */}
+          <Link
+            href="/register"
+            className="text-sm text-white/70 hover:text-white underline transition"
+          >
+            New here? Create an account
+          </Link>
         </div>
       </div>
     </div>
