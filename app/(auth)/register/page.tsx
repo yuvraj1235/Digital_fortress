@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/services/auth";
 import Script from "next/script";
+import Link from "next/link";
 
 declare global {
   interface Window {
@@ -12,50 +13,61 @@ declare global {
   }
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+
   const router = useRouter();
 
-  // Initialize Google when script is ready
-  useEffect(() => {
-    if (scriptLoaded && window.google) {
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-        callback: handleGoogleResponse,
-        use_fedcm_for_prompt: false,
-      });
-    }
-  }, [scriptLoaded]);
+  /* ---------------- GOOGLE CALLBACK ---------------- */
+  const handleGoogleResponse = useCallback(
+    async (response: any) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // 🔥 REGISTER-ONLY LOGIC (Works for new + existing users)
-  const handleGoogleResponse = async (response: any) => {
-    try {
-      setLoading(true);
-      setError(null);
+        await registerUser({
+          type: "1", // Google
+          accesstoken: response.credential,
+        });
 
-      const data = await registerUser({
-        type: "1", // Google
-        accesstoken: response.credential,
-      });
+        // ✅ TRUST STORAGE (not response shape)
+        const token = localStorage.getItem("df_token");
 
-      if (data.status === 200 && data.token) {
-        // Session already set in auth.js setSession()
-        router.push("/home");
-      } else {
-        throw new Error(data.message || "Google authentication failed");
+        if (!token) {
+          throw new Error("Registration failed: token not found");
+        }
+
+        // ✅ Give backend time to create Player
+        setTimeout(() => {
+          router.push("/home");
+        }, 500);
+
+      } catch (err: any) {
+        console.error("Google Register error:", err);
+        setError(
+          err?.data?.message ||
+          err?.message ||
+          "Google sign-in failed."
+        );
+      } finally {
+        setLoading(false);
       }
+    },
+    [router]
+  );
 
-    } catch (err: any) {
-      console.error("Google Register error:", err);
-      const errorMessage =
-        err?.data?.message || err?.message || "Google sign-in failed.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  /* ---------------- GOOGLE INIT ---------------- */
+  useEffect(() => {
+    if (!scriptLoaded || !window.google) return;
+
+    window.google.accounts.id.initialize({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      callback: handleGoogleResponse,
+      use_fedcm_for_prompt: false,
+    });
+  }, [scriptLoaded, handleGoogleResponse]);
 
   const handleGoogleLogin = () => {
     if (!window.google) {
@@ -65,12 +77,12 @@ export default function LoginPage() {
     window.google.accounts.id.prompt();
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
-      {/* Google Identity Services */}
       <Script
         src="https://accounts.google.com/gsi/client"
         onLoad={() => setScriptLoaded(true)}
@@ -83,14 +95,18 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/30" />
 
         <div className="relative px-6 py-12 flex flex-col items-center gap-6 w-full text-center">
-          <img src="/logo/DF_LOGO.png" alt="Logo" className="w-20 h-20 mb-2" />
+          <img
+            src="/logo/DF_LOGO.png"
+            alt="Logo"
+            className="w-20 h-20 mb-2"
+          />
 
           <h2 className="text-3xl font-extrabold text-white tracking-widest uppercase">
             Digital Fortress
           </h2>
 
           <p className="text-white/70 text-sm">
-            Access the secure zone using your Google account
+            Register using your Google account
           </p>
 
           {error && (
@@ -111,6 +127,14 @@ export default function LoginPage() {
             />
             {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
           </button>
+
+          {/* 👇 Go to Login */}
+          <Link
+            href="/login"
+            className="text-sm text-white/70 hover:text-white underline transition"
+          >
+            Already have an account? Go to Login
+          </Link>
         </div>
       </div>
     </div>
