@@ -17,10 +17,10 @@ const setSession = (data: any) => {
     return;
   }
 
-  // ✅ Store in BOTH localStorage AND cookies
+  // ✅ Store in localStorage
   localStorage.setItem("df_token", token);
   
-  // ✅ Set cookie with proper settings
+  // ✅ Store in cookies (for middleware)
   document.cookie = `df_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
 
   if (data.user) {
@@ -40,6 +40,10 @@ export async function loginUser(payload: {
   });
 
   setSession(data);
+  
+  // ❌ REMOVE THIS LINE - it's causing the 401 error
+  // await apiRequest("quiz/user");
+  
   return data;
 }
 
@@ -55,6 +59,10 @@ export async function registerUser(payload: {
   });
 
   setSession(data);
+  
+  // ❌ REMOVE THIS LINE - it's causing the 401 error
+  // await apiRequest("quiz/user");
+  
   return data;
 }
 
@@ -67,7 +75,7 @@ export async function logoutUser() {
     localStorage.removeItem("df_token");
     localStorage.removeItem("df_user");
     
-    // ✅ Also remove the cookie
+    // ✅ Remove cookie
     document.cookie = "df_token=; path=/; max-age=0";
     
     window.location.href = "/login";

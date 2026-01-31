@@ -3,6 +3,18 @@ const RAW_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
 
+// ✅ Helper function to get cookie value
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  return null;
+}
+
 export async function apiRequest(
   endpoint: string,
   options: RequestInit = {}
@@ -10,10 +22,12 @@ export async function apiRequest(
   const cleanEndpoint = endpoint.replace(/^\//, "");
   const url = `${API_BASE_URL}/${cleanEndpoint}`;
 
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("df_token")
-      : null;
+  // ✅ Try to get token from localStorage first, then cookies
+  let token: string | null = null;
+  
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("df_token") || getCookie("df_token");
+  }
 
   console.log("🔐 Using token:", token);
   console.log("➡️ API Request:", url);
@@ -46,25 +60,9 @@ export async function apiRequest(
     data = null; // backend returned HTML
   }
 
-  // ✅ HANDLE 500 GRACEFULLY
+  // ✅ HANDLE errors
   if (!res.ok) {
     console.warn("⚠️ Backend error:", res.status, text);
-
-    // ✅ Special handling for Player DoesNotExist error
-    if (res.status === 500 && text.includes("Player matching query does not exist")) {
-      // Clear invalid session
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("df_token");
-        localStorage.removeItem("df_user");
-      }
-      
-      throw {
-        status: 500,
-        data,
-        message: "Your account is incomplete. Please register again using Google.",
-        needsReauth: true
-      };
-    }
 
     throw {
       status: res.status,
@@ -73,7 +71,7 @@ export async function apiRequest(
         data?.detail ||
         data?.message ||
         (res.status === 500
-          ? "Server error (handled safely)"
+          ? "Server error"
           : `HTTP ${res.status}`),
     };
   }
