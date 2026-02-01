@@ -34,8 +34,8 @@ export async function loginUser(payload: {
   accesstoken?: string;
   accesscode?: string;
 }) {
-  // Update this to match your Django URL structure
-  const data = await apiRequest("auth/login", { 
+  // ✅ ADDED 'quiz/' prefix
+  const data = await apiRequest("quiz/auth/login", { 
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -43,21 +43,20 @@ export async function loginUser(payload: {
   setSession(data);
   return data;
 }
+
 /* ---------- REGISTER ---------- */
 export async function registerUser(payload: {
   type: string;
   accesstoken?: string;
   accesscode?: string;
 }) {
-  const data = await apiRequest("auth/register", {
+  // ✅ ADDED 'quiz/' prefix
+  const data = await apiRequest("quiz/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 
   setSession(data);
-  
-  // ✅ NO ADDITIONAL API CALL - just return the data
-  // The user profile is already in data.user
   return data;
 }
 
