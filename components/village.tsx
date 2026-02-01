@@ -31,7 +31,7 @@ export default function Panorama() {
     };
     fetchProgress();
 
-    bgMusicRef.current = new Audio("/sounds/house.mp3");
+    bgMusicRef.current = new Audio("/sounds/village.mp3");
     bgMusicRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 

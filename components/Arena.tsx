@@ -46,7 +46,7 @@ export default function Panorama() {
     fetchProgress();
 
     // Initialize Audio
-    audioRef.current = new Audio("/sounds/arena.mp4");
+    audioRef.current = new Audio("/sounds/arena.mp3");
     audioRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 

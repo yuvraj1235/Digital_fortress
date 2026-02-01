@@ -32,7 +32,7 @@ export default function Panorama() {
     fetchProgress();
 
     // Initialize Audio objects
-    bgMusicRef.current = new Audio("/sounds/house.mp3");
+    bgMusicRef.current = new Audio("/sounds/house2.mp3");
     bgMusicRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
