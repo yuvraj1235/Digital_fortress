@@ -5,6 +5,7 @@ import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Profile from "@/components/Profile";
 import { Toaster } from "sonner"; //
+import { AudioProvider } from "@/contexts/AudioContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,14 +31,14 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      ><AudioProvider>
         <AuthProvider>
           <Profile />
           {children}
           {/* Sonner Toaster for game notifications */}
           <Toaster richColors position="top-center" />
         </AuthProvider>
-
+        </AudioProvider>
         {/* Google Identity Services script */}
         <Script
           src="https://accounts.google.com/gsi/client"

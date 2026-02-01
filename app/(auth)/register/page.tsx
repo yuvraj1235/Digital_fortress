@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/services/auth";
 import Script from "next/script";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext"; // ✅ Added useAuth
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
   const router = useRouter();
+  const { setUser } = useAuth(); // ✅ Get setUser from Context
 
   /* ---------------- GOOGLE CALLBACK ---------------- */
   const handleGoogleResponse = useCallback(
@@ -27,35 +29,41 @@ export default function RegisterPage() {
         setLoading(true);
         setError(null);
 
-        await registerUser({
+        // 1. Call Register API
+        const registrationData = await registerUser({
           type: "1", // Google
           accesstoken: response.credential,
         });
 
-        // ✅ TRUST STORAGE (not response shape)
+        // 2. Extract token from storage (set by setSession inside registerUser)
         const token = localStorage.getItem("df_token");
 
         if (!token) {
-          throw new Error("Registration failed: token not found");
+          throw new Error("Registration failed: Token was not saved.");
         }
 
-        // ✅ Give backend time to create Player
-        setTimeout(() => {
-          router.push("/home");
-        }, 500);
+        // 3. Update global AuthContext immediately
+        // Assuming your backend returns { user: {...}, token: "..." }
+        if (registrationData && registrationData.user) {
+          setUser(registrationData.user);
+        }
+
+        // 4. Redirect to home
+        console.log("✅ Registration successful, redirecting...");
+        router.push("/home");
 
       } catch (err: any) {
-        console.error("Google Register error:", err);
+        console.error("❌ Google Register error:", err);
         setError(
           err?.data?.message ||
           err?.message ||
-          "Google sign-in failed."
+          "Google registration failed. Maybe you already have an account?"
         );
       } finally {
         setLoading(false);
       }
     },
-    [router]
+    [router, setUser]
   );
 
   /* ---------------- GOOGLE INIT ---------------- */
@@ -65,7 +73,7 @@ export default function RegisterPage() {
     window.google.accounts.id.initialize({
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
       callback: handleGoogleResponse,
-      use_fedcm_for_prompt: false,
+      use_fedcm_for_prompt: true, // ✅ Recommended for 2026 browsers
     });
   }, [scriptLoaded, handleGoogleResponse]);
 
@@ -80,7 +88,7 @@ export default function RegisterPage() {
   /* ---------------- UI ---------------- */
   return (
     <div
-      className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+      className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center font-sans"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
       <Script
@@ -89,51 +97,52 @@ export default function RegisterPage() {
       />
 
       <Navbar />
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-md">
-        <div className="absolute inset-0 bg-black/30" />
+      <div className="relative z-10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/10 backdrop-blur-xl">
+        <div className="absolute inset-0 bg-black/40" />
 
-        <div className="relative px-6 py-12 flex flex-col items-center gap-6 w-full text-center">
+        <div className="relative px-8 py-14 flex flex-col items-center gap-6 w-full text-center">
           <img
             src="/logo/DF_LOGO.png"
             alt="Logo"
-            className="w-20 h-20 mb-2"
+            className="w-24 h-24 mb-2 drop-shadow-lg"
           />
 
-          <h2 className="text-3xl font-extrabold text-white tracking-widest uppercase">
-            Digital Fortress
+          <h2 className="text-3xl font-black text-white tracking-[0.2em] uppercase">
+            Create Account
           </h2>
 
-          <p className="text-white/70 text-sm">
-            Register using your Google account
+          <p className="text-white/60 text-sm tracking-wide">
+            Join Digital Fortress using Google
           </p>
 
           {error && (
-            <div className="w-full p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
-              {error}
+            <div className="w-full p-4 bg-red-950/40 border border-red-500/50 rounded-lg text-red-200 text-xs italic">
+              ⚠️ {error}
             </div>
           )}
 
           <button
             onClick={handleGoogleLogin}
             disabled={loading || !scriptLoaded}
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-white text-black font-bold tracking-widest hover:bg-gray-100 transition-all disabled:opacity-50"
+            className="group flex items-center justify-center gap-4 w-full py-4 rounded-xl bg-white text-black font-bold tracking-widest hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50"
           >
-            <img
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              className="w-6 h-6"
-            />
-            {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
+            {!loading && (
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+                className="w-6 h-6"
+              />
+            )}
+            {loading ? "PROCESSING..." : "REGISTER WITH GOOGLE"}
           </button>
 
-          {/* 👇 Go to Login */}
           <Link
             href="/login"
-            className="text-sm text-white/70 hover:text-white underline transition"
+            className="mt-2 text-xs text-white/50 hover:text-white transition-colors duration-300 uppercase tracking-widest border-b border-transparent hover:border-white"
           >
-            Already have an account? Go to Login
+            Already a Player? <span className="font-bold">Login Here</span>
           </Link>
         </div>
       </div>

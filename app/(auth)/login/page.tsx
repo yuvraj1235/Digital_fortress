@@ -22,56 +22,35 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuth();
 
-  /* ---------------- GOOGLE CALLBACK ---------------- */
-  const handleGoogleResponse = useCallback(
-    async (response: any) => {
-      try {
-        setLoading(true);
-        setError(null);
+ // ✅ Update the handleGoogleResponse logic
+const handleGoogleResponse = useCallback(
+  async (response: any) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        console.log("🔵 Starting login process...");
+      const loginData = await loginUser({
+        type: "1",
+        accesstoken: response.credential,
+      });
 
-        const loginData = await loginUser({
-          type: "1", // Google
-          accesstoken: response.credential,
-        });
-
-        console.log("🔵 Login data received:", loginData);
-
-        // ✅ TRUST STORAGE, NOT RESPONSE SHAPE
-        const token = localStorage.getItem("df_token");
-
-        if (!token) {
-          throw new Error("Login failed: token not found");
-        }
-
-        console.log("🔵 Token found in localStorage:", token);
-
-        // Optional: restore user from storage
-        const storedUser = localStorage.getItem("df_user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-          console.log("🔵 User set in context");
-        }
-
-        // ✅ Redirect immediately
-        console.log("🔵 Redirecting to /home...");
+      // loginData likely looks like: { user: {...}, token: "..." }
+      if (loginData && loginData.user) {
+        // ✅ Sync the context immediately so other components know we are logged in
+        setUser(loginData.user); 
         router.push("/home");
-        
-      } catch (err: any) {
-        console.error("❌ Login error:", err);
-        setError(
-          err?.data?.message ||
-          err?.message ||
-          "Authentication failed"
-        );
-      } finally {
-        setLoading(false);
+      } else {
+        throw new Error("Invalid response from server");
       }
-    },
-    [router, setUser]
-  );
-
+      
+    } catch (err: any) {
+      setError(err?.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  },
+  [router, setUser]
+);
   /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
     if (!scriptLoaded || !window.google) return;
