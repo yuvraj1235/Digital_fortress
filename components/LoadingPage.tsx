@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
 
-export default function LoadingScreen({ progress = 0 }) {
+type LoadingScreenProps = {
+  progress?: number;
+  onFinished?: () => void;
+};
+
+export default function LoadingScreen({ progress = 0, onFinished }: LoadingScreenProps) { // ✅ Add prop
   const [visible, setVisible] = useState(true);
+  const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
     if (progress >= 100) {
-      const timer = setTimeout(() => setVisible(false), 500);
+      setIsFading(true); // Start the 700ms CSS fade
+      const timer = setTimeout(() => {
+        setVisible(false);
+        if (onFinished) onFinished(); // ✅ Tell Home.tsx the screen is gone
+      }, 700); // Match your transition duration
       return () => clearTimeout(timer);
     }
-  }, [progress]);
+  }, [progress, onFinished]);
 
   if (!visible) return null;
-
   return (
     <div
       className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black transition-opacity duration-700 ${
