@@ -73,7 +73,7 @@ export default function RegisterPage() {
     window.google.accounts.id.initialize({
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
       callback: handleGoogleResponse,
-      use_fedcm_for_prompt: true, // ✅ Recommended for 2026 browsers
+      use_fedcm_for_prompt: false, // ✅ Recommended for 2026 browsers
     });
   }, [scriptLoaded, handleGoogleResponse]);
 
