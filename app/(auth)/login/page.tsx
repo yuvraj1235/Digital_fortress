@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/services/auth";
-import Script from "next/script";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,70 +16,86 @@ declare global {
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-
   const router = useRouter();
   const { setUser } = useAuth();
+  
+  // ✅ Use a ref to target the button container
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
- // ✅ Update the handleGoogleResponse logic
-const handleGoogleResponse = useCallback(
-  async (response: any) => {
-    try {
-      setLoading(true);
-      setError(null);
+  /* ---------------- GOOGLE CALLBACK ---------------- */
+  const handleGoogleResponse = useCallback(
+    async (response: any) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const loginData = await loginUser({
-        type: "1",
-        accesstoken: response.credential,
-      });
+        const loginData = await loginUser({
+          type: "1",
+          accesstoken: response.credential,
+        });
 
-      // loginData likely looks like: { user: {...}, token: "..." }
-      if (loginData && loginData.user) {
-        // ✅ Sync the context immediately so other components know we are logged in
-        setUser(loginData.user); 
-        router.push("/home");
-      } else {
-        throw new Error("Invalid response from server");
+        if (loginData && loginData.user) {
+          setUser(loginData.user); 
+          router.push("/home");
+        } else {
+          throw new Error("Invalid response from server");
+        }
+        
+      } catch (err: any) {
+        console.error("❌ Login error:", err);
+        setError(err?.message || "Authentication failed");
+        setLoading(false); // Reset loading on error
       }
-      
-    } catch (err: any) {
-      setError(err?.message || "Authentication failed");
-    } finally {
-      setLoading(false);
-    }
-  },
-  [router, setUser]
-);
+    },
+    [router, setUser]
+  );
+
   /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
-    if (!scriptLoaded || !window.google) return;
+    const initializeGoogle = () => {
+      if (!window.google || !googleBtnRef.current) return;
 
-    window.google.accounts.id.initialize({
-      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-      callback: handleGoogleResponse,
-      use_fedcm_for_prompt: false,
-    });
-  }, [scriptLoaded, handleGoogleResponse]);
+      // 1. Initialize
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        callback: handleGoogleResponse,
+        use_fedcm_for_prompt: true,
+      });
 
-  const handleGoogleLogin = () => {
-    if (!window.google) {
-      setError("Google authentication is still initializing...");
-      return;
+      // 2. ✅ Render the Official Button
+      // This ensures the button is always active and clickable
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "pill",
+        width: googleBtnRef.current.offsetWidth,
+      });
+
+      // 3. Optional: One-tap prompt
+      window.google.accounts.id.prompt();
+    };
+
+    // Since script is in layout.tsx, it might already be ready
+    if (window.google) {
+      initializeGoogle();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) {
+          initializeGoogle();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
-    window.google.accounts.id.prompt();
-  };
+  }, [handleGoogleResponse]);
 
-  /* ---------------- UI ---------------- */
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        onLoad={() => setScriptLoaded(true)}
-      />
-
       <Navbar />
       <div className="absolute inset-0 bg-black/40" />
 
@@ -108,29 +123,23 @@ const handleGoogleResponse = useCallback(
             </div>
           )}
 
-          {loading && (
-            <div className="w-full p-3 bg-blue-500/20 border border-blue-500 rounded text-blue-300 text-sm">
-              Logging in, please wait...
-            </div>
-          )}
+          {/* ✅ THE FIX: Button Container */}
+          <div className="w-full flex flex-col items-center min-h-[50px]">
+            <div 
+              ref={googleBtnRef} 
+              className={`w-full transition-opacity duration-300 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}
+            ></div>
+            
+            {loading && (
+              <p className="mt-4 text-white/70 text-xs animate-pulse tracking-widest">
+                AUTHENTICATING...
+              </p>
+            )}
+          </div>
 
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading || !scriptLoaded}
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-white text-black font-bold tracking-widest hover:bg-gray-100 transition-all disabled:opacity-50"
-          >
-            <img
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              className="w-6 h-6"
-            />
-            {loading ? "AUTHENTICATING..." : "CONTINUE WITH GOOGLE"}
-          </button>
-
-          {/* 👇 Go to Register */}
           <Link
             href="/register"
-            className="text-sm text-white/70 hover:text-white underline transition"
+            className="text-sm text-white/70 hover:text-white underline transition mt-4"
           >
             New here? Create an account
           </Link>

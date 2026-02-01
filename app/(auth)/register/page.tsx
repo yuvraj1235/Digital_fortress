@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/services/auth";
-import Script from "next/script";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext"; // ✅ Added useAuth
+import { useAuth } from "@/contexts/AuthContext";
 
 declare global {
   interface Window {
@@ -17,10 +16,11 @@ declare global {
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-
   const router = useRouter();
-  const { setUser } = useAuth(); // ✅ Get setUser from Context
+  const { setUser } = useAuth();
+  
+  // Ref to track if the button is already rendered to prevent duplicates
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
   /* ---------------- GOOGLE CALLBACK ---------------- */
   const handleGoogleResponse = useCallback(
@@ -29,37 +29,18 @@ export default function RegisterPage() {
         setLoading(true);
         setError(null);
 
-        // 1. Call Register API
-        const registrationData = await registerUser({
-          type: "1", // Google
+        const data = await registerUser({
+          type: "1", 
           accesstoken: response.credential,
         });
 
-        // 2. Extract token from storage (set by setSession inside registerUser)
-        const token = localStorage.getItem("df_token");
-
-        if (!token) {
-          throw new Error("Registration failed: Token was not saved.");
+        if (data && data.user) {
+          setUser(data.user);
+          router.push("/home");
         }
-
-        // 3. Update global AuthContext immediately
-        // Assuming your backend returns { user: {...}, token: "..." }
-        if (registrationData && registrationData.user) {
-          setUser(registrationData.user);
-        }
-
-        // 4. Redirect to home
-        console.log("✅ Registration successful, redirecting...");
-        router.push("/home");
-
       } catch (err: any) {
-        console.error("❌ Google Register error:", err);
-        setError(
-          err?.data?.message ||
-          err?.message ||
-          "Google registration failed. Maybe you already have an account?"
-        );
-      } finally {
+        console.error("❌ Register error:", err);
+        setError(err?.message || "Registration failed. Try again.");
         setLoading(false);
       }
     },
@@ -68,34 +49,51 @@ export default function RegisterPage() {
 
   /* ---------------- GOOGLE INIT ---------------- */
   useEffect(() => {
-    if (!scriptLoaded || !window.google) return;
+    const initializeGoogle = () => {
+      if (!window.google || !googleBtnRef.current) return;
 
-    window.google.accounts.id.initialize({
-      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-      callback: handleGoogleResponse,
-      use_fedcm_for_prompt: false, // ✅ Recommended for 2026 browsers
-    });
-  }, [scriptLoaded, handleGoogleResponse]);
+      // 1. Initialize Google Identity
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        callback: handleGoogleResponse,
+        use_fedcm_for_prompt: true,
+      });
 
-  const handleGoogleLogin = () => {
-    if (!window.google) {
-      setError("Google authentication is still initializing...");
-      return;
+      // 2. Render the Official Button
+      // This solves the 'disabled' issue because it renders a fresh button
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "signup_with",
+        shape: "pill",
+        width: googleBtnRef.current.offsetWidth,
+      });
+
+      // 3. Optionally show the One-Tap prompt
+      window.google.accounts.id.prompt();
+    };
+
+    // If script is already loaded in layout, initialize immediately
+    if (window.google) {
+      initializeGoogle();
+    } else {
+      // Fallback: check every 100ms if script is ready
+      const interval = setInterval(() => {
+        if (window.google) {
+          initializeGoogle();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
-    window.google.accounts.id.prompt();
-  };
+  }, [handleGoogleResponse]);
 
-  /* ---------------- UI ---------------- */
   return (
     <div
       className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center font-sans"
       style={{ backgroundImage: "url('/regn.webp')" }}
     >
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        onLoad={() => setScriptLoaded(true)}
-      />
-
       <Navbar />
       <div className="absolute inset-0 bg-black/50" />
 
@@ -113,34 +111,33 @@ export default function RegisterPage() {
             Create Account
           </h2>
 
-          <p className="text-white/60 text-sm tracking-wide">
+          <p className="text-white/60 text-sm tracking-wide mb-4">
             Join Digital Fortress using Google
           </p>
 
           {error && (
-            <div className="w-full p-4 bg-red-950/40 border border-red-500/50 rounded-lg text-red-200 text-xs italic">
-              ⚠️ {error}
+            <div className="w-full p-4 bg-red-950/40 border border-red-500/50 rounded-lg text-red-200 text-xs mb-4">
+              {error}
             </div>
           )}
 
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading || !scriptLoaded}
-            className="group flex items-center justify-center gap-4 w-full py-4 rounded-xl bg-white text-black font-bold tracking-widest hover:bg-indigo-50 transition-all active:scale-95 disabled:opacity-50"
-          >
-            {!loading && (
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google"
-                className="w-6 h-6"
-              />
+          {/* ✅ THE FIX: Official Google Button Container */}
+          <div className="w-full flex flex-col items-center min-h-[50px]">
+            <div 
+              ref={googleBtnRef} 
+              className={`w-full transition-opacity duration-300 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}
+            ></div>
+            
+            {loading && (
+              <p className="mt-4 text-white/70 text-xs animate-pulse tracking-widest">
+                VERIFYING WITH GOOGLE...
+              </p>
             )}
-            {loading ? "PROCESSING..." : "REGISTER WITH GOOGLE"}
-          </button>
+          </div>
 
           <Link
             href="/login"
-            className="mt-2 text-xs text-white/50 hover:text-white transition-colors duration-300 uppercase tracking-widest border-b border-transparent hover:border-white"
+            className="mt-6 text-xs text-white/50 hover:text-white transition-colors uppercase tracking-widest border-b border-transparent hover:border-white"
           >
             Already a Player? <span className="font-bold">Login Here</span>
           </Link>
