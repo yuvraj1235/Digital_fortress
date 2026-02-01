@@ -1,66 +1,57 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PROTECTED_ROUTES = [
-  "/home",
-  "/leaderboard",
-  "/profile",
-  "/house",
-  "/house2",
-  "/ruins",
-  "/village",
-  "/arena",
-];
+// Mapping routes to the required round level
+const LEVEL_REQUIREMENTS: Record<string, number> = {
+  "/house": 1,
+  "/house2": 2,
+  "/ruins": 3,
+  "/village": 4,
+  "/arena": 5,
+  "/mountain": 6,
+};
 
-const PUBLIC_ROUTES = [
-  "/login",
-  "/register",
-];
+const PROTECTED_ROUTES = ["/home", "/leaderboard", "/profile", ...Object.keys(LEVEL_REQUIREMENTS)];
+const PUBLIC_ROUTES = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
-  // Get token from cookies
   const token = request.cookies.get("df_token")?.value;
+  // Get the round from cookies. Default to 1 if not set.
+  const userRound = parseInt(request.cookies.get("df_round")?.value || "1", 10);
   const { pathname } = request.nextUrl;
 
-  console.log("🔒 Middleware check:", { pathname, hasToken: !!token });
+  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
-  // 1. Check if the current route is protected
-  const isProtected = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // 2. Check if the current route is public (login/register)
-  const isPublic = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // 3. If protected route and no token, redirect to login
+  // 1. Auth Guard: No token -> Login
   if (isProtected && !token) {
-    console.log("❌ No token, redirecting to login");
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. If user has token and tries to access login/register, redirect to home
+  // 2. Auth Guard: Logged in -> Don't show Login/Register
   if (isPublic && token) {
-    console.log("✅ Has token, redirecting to home");
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  // 5. If user has token and is on root ("/"), redirect to home
-  if (pathname === "/" && token) {
-    console.log("✅ Has token on root, redirecting to home");
-    return NextResponse.redirect(new URL("/home", request.url));
+  // 3. Level Guard: Check if user has access to the specific sector
+  // We check if the current path starts with any of our level keys
+  for (const [route, requiredLevel] of Object.entries(LEVEL_REQUIREMENTS)) {
+    if (pathname.startsWith(route)) {
+      if (userRound < requiredLevel) {
+        console.warn(`🚫 Access Denied for ${pathname}. Need: ${requiredLevel}, Have: ${userRound}`);
+        // Redirect back to main map if level is locked
+        return NextResponse.redirect(new URL("/home", request.url));
+      }
+    }
   }
 
-  // 6. If user has no token and is on root ("/"), redirect to login
-  if (pathname === "/" && !token) {
-    console.log("❌ No token on root, redirecting to login");
-    return NextResponse.redirect(new URL("/login", request.url));
+  // 4. Root redirect
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL(token ? "/home" : "/login", request.url));
   }
 
-  // Allow the request to proceed
   return NextResponse.next();
 }
 
@@ -75,6 +66,7 @@ export const config = {
     "/ruins/:path*",
     "/village/:path*",
     "/arena/:path*",
+    "/mountain/:path*",
     "/login",
     "/register",
   ],

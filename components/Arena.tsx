@@ -1,15 +1,14 @@
 "use client";
 
-import { Canvas, useLoader, useThree, useFrame } from "@react-three/fiber";
+import { Canvas, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api";
 import { toast } from "sonner";
-
-
-
+import { useAudio } from "@/contexts/AudioContext"; // ✅ Added
+import MuteButton from "@/components/MuteButton"; // ✅ Added
 
 function PanoramaSphere() {
   const texture = useLoader(THREE.TextureLoader, "/levels/arena.avif");
@@ -25,10 +24,9 @@ function PanoramaSphere() {
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
+  const { isMuted } = useAudio(); // ✅ Access global mute state
   
-  // 1. SET TO TRUE BY DEFAULT FOR PAGE LOAD
   const [showKnight, setShowKnight] = useState(true); 
-  const [shouldRotate, setShouldRotate] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -39,7 +37,6 @@ export default function Panorama() {
         const data = await apiRequest("quiz/getRound");
         if (data.status === 200) {
           setCurrentRound(data.question.round_number);
-          // Show popup once level is confirmed
           setShowKnight(true); 
         }
       } catch (err) {
@@ -48,15 +45,41 @@ export default function Panorama() {
     };
     fetchProgress();
 
+    // Initialize Audio
     audioRef.current = new Audio("/sounds/arena.mp4");
     audioRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
-    return () => audioRef.current?.pause();
+    const startAudio = () => {
+      if (!isMuted) {
+        audioRef.current?.play().catch(() => {});
+      }
+      window.removeEventListener("click", startAudio);
+    };
+    window.addEventListener("click", startAudio);
+
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      window.removeEventListener("click", startAudio);
+    };
   }, []);
 
-  const playClickSound = () => {
+  // ✅ SYNC MUTE STATE
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+      if (!isMuted && audioRef.current.paused && !showKnight) {
+        audioRef.current.play().catch(() => {});
+      }
+    }
     if (clickSoundRef.current) {
+      clickSoundRef.current.muted = isMuted;
+    }
+  }, [isMuted, showKnight]);
+
+  const playClickSound = () => {
+    if (clickSoundRef.current && !isMuted) {
       clickSoundRef.current.currentTime = 0;
       clickSoundRef.current.play().catch(() => {});
     }
@@ -76,19 +99,15 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
+      {/* ✅ Mute Button Overlay: Fixed at z-60 to stay above the 3D Canvas */}
+      <div className="fixed top-24 right-6 z-[60]">
+        <MuteButton />
+      </div>
+
       <Canvas camera={{ fov: 75, position: [0, 0, 0.1] }}>
         <PanoramaSphere />
-        
-       
         <OrbitControls enableZoom={false} enablePan={false} makeDefault />
-
-       
       </Canvas>
-
-    
-
-    
-    
     </div>
   );
 }

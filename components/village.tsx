@@ -6,12 +6,15 @@ import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api"; 
-
-import { toast } from "sonner"; // Import Sonner
+import { useAudio } from "@/contexts/AudioContext"; 
+import MuteButton from "@/components/MuteButton"; // ✅ Added Import
+import { toast } from "sonner";
 
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
+  const { isMuted } = useAudio(); 
+  
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -32,46 +35,64 @@ export default function Panorama() {
     bgMusicRef.current.loop = true;
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
+    // Optional: Auto-start audio on first click if not muted
     const startAudio = () => {
-      bgMusicRef.current?.play().catch(() => {});
+      if (!isMuted) bgMusicRef.current?.play().catch(() => {});
       window.removeEventListener("click", startAudio);
     };
     window.addEventListener("click", startAudio);
 
     return () => {
       bgMusicRef.current?.pause();
+      bgMusicRef.current = null;
       window.removeEventListener("click", startAudio);
     };
   }, []);
 
+  useEffect(() => {
+    if (bgMusicRef.current) {
+      bgMusicRef.current.muted = isMuted;
+      if (!isMuted) {
+        bgMusicRef.current.play().catch(() => {});
+      }
+    }
+    if (clickSoundRef.current) {
+      clickSoundRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
   const handleNavigate = (path: string, levelRequired: number) => {
-    clickSoundRef.current?.play().catch(() => {});
+    if (!isMuted) {
+      clickSoundRef.current?.play().catch(() => {});
+    }
 
     if (currentRound >= levelRequired) {
       router.push(path);
     } else {
-      // Replaced alert with Sonner Toast
       toast.error("Sector Locked", {
-        description: `Round ${levelRequired} is unavailable. Complete previous rounds first.`,
-        style: {
-          background: "#2D1B13",
-          color: "#FFD700",
-          border: "1px solid #8B735B",
-        },
+        description: `Round ${levelRequired} unavailable.`,
+        style: { background: "#2D1B13", color: "#FFD700", border: "1px solid #8B735B" },
       });
     }
   };
 
   return (
-    <Canvas
-      camera={{ fov: 75, position: [0, 0, 1] }}
-      style={{ width: "100vw", height: "100vh" }}
-    >
-      <PanoramaSphere />
-      <OrbitControls enableZoom={false} enablePan={false} />
-      
-   
-    </Canvas>
+    <div className="relative w-full h-screen bg-black">
+      {/* ✅ MUTE BUTTON OVERLAY 
+          Positioned top-right, z-60 ensures it's above the 3D Canvas
+      */}
+      <div className="fixed top-24 right-6 z-[60]">
+        <MuteButton />
+      </div>
+
+      <Canvas
+        camera={{ fov: 75, position: [0, 0, 1] }}
+        style={{ width: "100vw", height: "100vh" }}
+      >
+        <PanoramaSphere />
+        <OrbitControls enableZoom={false} enablePan={false} />
+      </Canvas>
+    </div>
   );
 }
 

@@ -7,14 +7,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api";
 import ProceedButton from "@/components/Button";
-import { toast } from "sonner"; // Import Sonner
+import MuteButton from "@/components/MuteButton"; // ✅ Ensure this is imported
+import { useAudio } from "@/contexts/AudioContext"; 
+import { toast } from "sonner";
 
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
+  const { isMuted } = useAudio(); 
+  
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
+  // 1. Initial Data & Audio Setup
   useEffect(() => {
     const fetchProgress = async () => {
       try {
@@ -33,46 +38,52 @@ export default function Panorama() {
     clickSoundRef.current = new Audio("/sounds/click.wav");
 
     const startAudio = () => {
-      bgMusicRef.current?.play().catch(() => { });
+      if (!isMuted) {
+        bgMusicRef.current?.play().catch(() => { });
+      }
       window.removeEventListener("click", startAudio);
     };
     window.addEventListener("click", startAudio);
 
     return () => {
       bgMusicRef.current?.pause();
+      bgMusicRef.current = null;
       window.removeEventListener("click", startAudio);
     };
   }, []);
 
-  const handleNavigate = (path: string, levelRequired: number) => {
-    clickSoundRef.current?.play().catch(() => { });
-
-    if (currentRound >= levelRequired) {
-      router.push(path);
-    } else {
-      // Replaced alert with Sonner Toast
-      toast.error("Sector Locked", {
-        description: `Round ${levelRequired} is unavailable. Complete previous rounds first.`,
-        style: {
-          background: "#2D1B13",
-          color: "#FFD700",
-          border: "1px solid #8B735B",
-        },
-      });
+  // 2. Mute State Sync
+  useEffect(() => {
+    if (bgMusicRef.current) {
+      bgMusicRef.current.muted = isMuted;
+      if (!isMuted && bgMusicRef.current.paused) {
+        bgMusicRef.current.play().catch(() => {});
+      }
     }
-  };
+    if (clickSoundRef.current) {
+      clickSoundRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   return (
-    <div>
+    <div className="relative w-full h-screen bg-black">
+      {/* ✅ MUTE BUTTON CONTAINER 
+          We place it here so it sits ABOVE the Canvas.
+          z-60 is higher than Navbar (50) and Canvas (0) 
+      */}
+      <div className="fixed top-24 right-6 z-[60]">
+        <MuteButton />
+      </div>
+
       <Canvas
         camera={{ fov: 75, position: [0, 0, 1] }}
         style={{ width: "100vw", height: "100vh" }}
       >
         <PanoramaSphere />
         <OrbitControls enableZoom={false} enablePan={false} />
-
-
       </Canvas>
+      
+      {/* Bottom Button */}
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
         <ProceedButton round={currentRound} />
       </div>
