@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { apiRequest } from "@/lib/api";
+import { toast } from "sonner"; // ✅ Import Sonner
 
 export default function ClueBox({ clues, onClose, refreshClues }: any) {
     const [activeIdx, setActiveIdx] = useState(0);
@@ -10,7 +11,9 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
 
     const handleClueSubmit = async () => {
         if (!clueAnswer.trim()) {
-            alert("Please enter an answer!");
+            toast.warning("The scroll is empty", {
+                description: "Please enter an answer to proceed.",
+            });
             return;
         }
 
@@ -25,16 +28,35 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
             });
 
             if (data.status === 200 || data.correct) {
-                alert("Correct! Marker added to map.");
+                // ✅ Success Toast
+                toast.success("Clue Deciphered!", {
+                    description: "A new marker has been added to your map.",
+                    style: {
+                        background: '#EADDCA',
+                        color: '#3E2723',
+                        border: '2px solid #2E7D32',
+                    }
+                });
+                
                 setClueAnswer("");
-                refreshClues(); // Updates map markers
-                onClose(); // Close the modal after correct answer
+                refreshClues(); 
+                onClose(); 
             } else {
-                alert(data.message || "Wrong answer!");
+                // ✅ Wrong Answer Toast
+                toast.error("Incorrect Decryption", {
+                    description: data.message || "The archives remain silent. Try again.",
+                    style: {
+                        background: '#3E2723',
+                        color: '#EADDCA',
+                        border: '1px solid #C6AD8B',
+                    }
+                });
             }
         } catch (err) { 
             console.error("Error submitting clue:", err);
-            alert("Error submitting. Please try again."); 
+            toast.error("Archive Error", {
+                description: "The connection to the royal archives was lost.",
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -76,7 +98,6 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
                         </svg>
                     </button>
 
-                    {/* Subtle texture overlay for paper effect (CSS Vignette) */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none"
                         style={{ background: 'radial-gradient(circle, transparent 40%, #8B735B 100%)' }}></div>
 
@@ -104,7 +125,6 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
 
                     <div key={activeIdx} className="flex-grow flex flex-col items-center justify-center w-full z-10 animate-in fade-in zoom-in-95 duration-500">
                         
-                        {/* Clue Image (if exists) */}
                         {currentClue?.image && (
                             <div className="mb-6 w-full max-w-md">
                                 <div className="relative border-4 border-[#8B735B] rounded-lg overflow-hidden shadow-2xl bg-[#3E2723]/10">
@@ -112,10 +132,6 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
                                         src={currentClue.image} 
                                         alt="Clue visual hint"
                                         className="w-full h-auto object-cover"
-                                        onError={(e) => {
-                                            console.error("Image failed to load:", currentClue.image);
-                                            e.currentTarget.style.display = 'none';
-                                        }}
                                     />
                                     <div className="absolute inset-0 border-2 border-[#C6AD8B] pointer-events-none"></div>
                                 </div>
