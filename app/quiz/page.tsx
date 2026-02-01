@@ -176,7 +176,7 @@ export default function QuizPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button onClick={() => setShowClues(true)} className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg hover:bg-[#1a100c] transition-colors border border-[#C6AD8B]/20">
-                    🔍 Clues
+                     Clues
                   </button>
 
                   <button 
@@ -184,7 +184,7 @@ export default function QuizPage() {
                     disabled={submitting || !answer.trim()} 
                     className="px-8 py-3 bg-[#C6AD8B] text-[#2D1B13] rounded-lg font-bold hover:bg-[#EADDCA] transition-colors disabled:opacity-50"
                   >
-                    {submitting ? "⏳ Checking..." : "✓ Submit"}
+                    {submitting ? "⏳ Checking..." : "Submit"}
                   </button>
                 </div>
               </div>
