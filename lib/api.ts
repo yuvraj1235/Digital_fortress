@@ -29,9 +29,6 @@ export async function apiRequest(
     token = localStorage.getItem("df_token") || getCookie("df_token");
   }
 
-  console.log("Using token:", token);
-  console.log("API Request:", url);
-
   let res: Response;
 
   try {
@@ -62,7 +59,7 @@ export async function apiRequest(
 
   // HANDLE errors
   if (!res.ok) {
-    console.warn("Backend error:", res.status, text);
+    console.warn("Backend error:", res.status);
 
     throw {
       status: res.status,

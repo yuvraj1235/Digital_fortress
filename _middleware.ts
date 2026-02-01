@@ -46,7 +46,6 @@ export function middleware(request: NextRequest) {
   for (const [route, requiredLevel] of Object.entries(LEVEL_REQUIREMENTS)) {
     if (pathname.startsWith(route)) {
       if (userRound < requiredLevel) {
-        console.warn(`Access Denied: Need Level ${requiredLevel}, Have Level ${userRound}`);
         return NextResponse.redirect(new URL("/home", request.url));
       }
     }

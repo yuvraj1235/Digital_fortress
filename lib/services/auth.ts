@@ -2,18 +2,14 @@
 import { apiRequest } from "@/lib/api";
 
 const setSession = (data: any) => {
-  console.log("FULL LOGIN RESPONSE =", data);
-
   const token =
     data.token ||
     data.auth_token ||
     data.key ||
     data?.data?.token;
 
-  console.log("EXTRACTED TOKEN =", token);
-
   if (!token) {
-    console.error("No token found in login response!");
+    console.error("Session setup failed");
     return;
   }
 
@@ -65,7 +61,7 @@ export async function logoutUser() {
   try {
     await apiRequest("quiz/auth/logout", { method: "POST" });
   } catch (error) {
-    console.error("Logout API call failed:", error);
+    // Logout error handled silently
   } finally {
     localStorage.removeItem("df_token");
     localStorage.removeItem("df_user");

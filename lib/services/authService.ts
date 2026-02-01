@@ -36,7 +36,7 @@ export const authService = {
     try {
       await apiRequest("auth/logout", { method: "POST" });
     } catch (error) {
-      console.error("Logout failed:", error);
+      // Logout error handled silently
     } finally {
       // 3. Clear everything
       localStorage.removeItem("df_token");

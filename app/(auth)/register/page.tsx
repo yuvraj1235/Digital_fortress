@@ -39,7 +39,6 @@ export default function RegisterPage() {
           router.push("/home");
         }
       } catch (err: any) {
-        console.error("Register error:", err);
         setError(err?.message || "Registration failed. Try again.");
         setLoading(false);
       }

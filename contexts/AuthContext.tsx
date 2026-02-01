@@ -39,7 +39,6 @@ useEffect(() => {
 
     // STOP: If there is no token, don't even call the backend
     if (!token) {
-      console.log("No token found, skipping initial profile fetch.");
       setIsLoading(false);
       return; 
     }
@@ -72,7 +71,7 @@ useEffect(() => {
     try {
       await logoutUser();
     } catch (err) {
-      console.error("Backend logout failed:", err);
+      console.error("Logout failed");
     } finally {
       clearAuthData();
       router.push("/login");

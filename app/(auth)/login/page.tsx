@@ -42,7 +42,6 @@ export default function LoginPage() {
         }
         
       } catch (err: any) {
-        console.error("Login error:", err);
         setError(err?.message || "Authentication failed");
         setLoading(false); // Reset loading on error
       }
