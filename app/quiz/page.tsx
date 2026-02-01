@@ -1,4 +1,3 @@
-// app/home/page.tsx (or wherever your quiz page is)
 "use client";
 
 import Navbar from "@/components/Navbar";
@@ -9,6 +8,7 @@ import Rules from "@/components/Rules";
 import { MyMap } from "@/components/MyMap";
 import { apiRequest } from "@/lib/api";
 import ClueBox from "@/components/Cluebox";
+import { toast } from "sonner"; // ✅ Import Sonner
 
 export default function QuizPage() {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [authError, setAuthError] = useState(false); // NEW
+  const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
     initRound();
@@ -39,7 +39,7 @@ export default function QuizPage() {
   const fetchCurrentRound = async () => {
     try {
       setError("");
-      setAuthError(false); // NEW
+      setAuthError(false);
       const data = await apiRequest("quiz/getRound");
       if (data.status === 200) {
         setRoundData(data.question);
@@ -48,25 +48,17 @@ export default function QuizPage() {
         setError("The quiz has not started yet or has ended.");
       }
     } catch (err: any) {
-      // ✅ Handle auth error
       if (err.needsReauth || (err.status === 500 && err.message.includes("account is incomplete"))) {
         setAuthError(true);
         setError(err.message || "Please register again with Google");
         
-        // Redirect after 3 seconds
         setTimeout(() => {
           router.push("/register?error=incomplete_profile");
         }, 3000);
         return;
       }
-
-      // Fallback demo data
-      setRoundData({
-        question:
-          "The Golden Ratio is hidden within the architecture of the Parthenon. Find the next sequence.",
-      });
+      setRoundData({ question: "The Golden Ratio is hidden within the architecture of the Parthenon. Find the next sequence." });
       setMapCentre([23.48, 87.32]);
-      setError("");
     }
   };
 
@@ -75,12 +67,7 @@ export default function QuizPage() {
       const data = await apiRequest("quiz/getClue");
       if (data.status === 200) setClues(data.clues);
     } catch (err: any) {
-      // ✅ Handle auth error
-      if (err.needsReauth) {
-        return; // Already handled in fetchCurrentRound
-      }
-
-      // Fallback demo data
+      if (err.needsReauth) return;
       setClues([
         { id: 1, question: "Look near the ancient pillars.", solved: false },
         { id: 2, question: "Where the shadow falls at noon.", solved: true },
@@ -100,19 +87,28 @@ export default function QuizPage() {
 
       if (data.status === 200) {
         setAnswer("");
+        // ✅ Success Toast
+        toast.success("Correct!", {
+          description: "Moving to the next round...",
+          style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
+        });
         initRound();
-        alert("Correct! Moving to next round.");
       } else {
-        alert("Wrong Answer. Try again!");
+        // ✅ Warning Toast
+        toast.error("Incorrect", {
+          description: "Wrong Answer. Try again!",
+          style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
+        });
       }
     } catch (err: any) {
-      // ✅ Handle auth error
       if (err.needsReauth) {
         router.push("/register?error=incomplete_profile");
         return;
       }
-
-      alert(err.data?.message || "Error submitting answer.");
+      // ✅ Error Toast
+      toast.error("Submission Error", {
+        description: err.data?.message || "Something went wrong.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -124,88 +120,61 @@ export default function QuizPage() {
         <Navbar />
       </div>
 
+      {/* Background Section */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src="/bg.jpeg"
-          alt="Quiz Background"
-          fill
-          className="object-cover"
-          priority
-        />
+        <Image src="/bg.jpeg" alt="Quiz Background" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
+      {/* Action Buttons (Leaderboard/Rules) */}
       <div className="absolute top-0 left-0 w-full z-50 flex items-start justify-between p-4 min-h-[5rem]">
-        <button
-          onClick={() => router.push("/leaderboard")}
-          className="hidden md:block absolute left-[15%] top-0 w-38 h-32 
-                     cursor-pointer hover:scale-105 transition-transform"
-        >
-          <Image
-            src="/logo/leaderboard.png"
-            alt="Leaderboard"
-            fill
-            className="object-contain object-top"
-          />
+        <button onClick={() => router.push("/leaderboard")} className="hidden md:block absolute left-[15%] top-0 w-38 h-32 cursor-pointer hover:scale-105 transition-transform">
+          <Image src="/logo/leaderboard.png" alt="Leaderboard" fill className="object-contain object-top" />
         </button>
 
-        <button
-          onClick={() => setShowRules(true)}
-          className="hidden md:block absolute right-[15%] top-0 w-39 h-34 
-                     cursor-pointer hover:scale-105 transition-transform"
-        >
-          <Image
-            src="/logo/rules.png"
-            alt="Rules"
-            fill
-            className="object-contain object-top"
-          />
+        <button onClick={() => setShowRules(true)} className="hidden md:block absolute right-[15%] top-0 w-39 h-34 cursor-pointer hover:scale-105 transition-transform">
+          <Image src="/logo/rules.png" alt="Rules" fill className="object-contain object-top" />
         </button>
       </div>
 
+      {/* Main Container */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4 pt-32 pb-32 md:pt-4 md:pb-4">
-        <div className="flex flex-col md:flex-row w-[calc(95%-20px)] md:w-[calc(80%-20px)] max-w-6xl h-[70vh] md:h-[60vh] bg-[#2D1B13]/90 rounded-xl overflow-hidden shadow-[0_0_60px_rgba(255,230,150,0.5)] translate-y-10 border-4 border-[#1a100c] backdrop-blur-sm">
+        <div className="flex flex-col md:flex-row w-[calc(95%-20px)] md:w-[calc(80%-20px)] max-w-6xl h-auto md:h-[60vh] bg-[#2D1B13]/90 rounded-xl overflow-hidden shadow-[0_0_60px_rgba(255,230,150,0.5)] border-4 border-[#1a100c] backdrop-blur-sm">
 
+          {/* Left Panel: Question and Input */}
           <div className="w-full md:w-1/2 p-8 flex flex-col justify-center items-center">
             {loading ? (
-              <p className="text-[#C6AD8B] font-serif text-xl text-center">
-                Loading...
-              </p>
+              <p className="text-[#C6AD8B] font-serif text-xl animate-pulse">Loading...</p>
             ) : authError ? (
-              // ✅ NEW: Auth error display
               <div className="w-full max-w-md space-y-4 text-center">
                 <p className="text-red-400 font-serif text-lg">{error}</p>
-                <p className="text-[#C6AD8B] font-serif text-sm">
-                  Redirecting to registration...
-                </p>
+                <p className="text-[#C6AD8B] font-serif text-sm">Redirecting...</p>
               </div>
             ) : error ? (
               <p className="text-red-400 font-serif text-center">{error}</p>
             ) : (
               <div className="w-full max-w-md space-y-6">
-                <h2 className="text-[#C6AD8B] text-2xl md:text-3xl font-serif text-center leading-relaxed drop-shadow-lg">
+                <h2 className="text-[#C6AD8B] text-xl md:text-2xl font-serif text-center leading-relaxed drop-shadow-lg">
                   {roundData?.question}
                 </h2>
 
                 <input
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                   placeholder="Enter your answer..."
-                  className="w-full p-4 text-center text-lg font-serif rounded-lg bg-[#EADDCA] text-[#3E2723]"
+                  className="w-full p-4 text-center text-lg font-serif rounded-lg bg-[#EADDCA] text-[#3E2723] focus:ring-2 focus:ring-[#C6AD8B] outline-none transition-all"
                 />
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={() => setShowClues(true)}
-                    className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg"
-                  >
+                  <button onClick={() => setShowClues(true)} className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg hover:bg-[#1a100c] transition-colors border border-[#C6AD8B]/20">
                     🔍 Clues
                   </button>
 
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !answer.trim()}
-                    className="px-8 py-3 bg-[#C6AD8B] text-[#2D1B13] rounded-lg"
+                  <button 
+                    onClick={handleSubmit} 
+                    disabled={submitting || !answer.trim()} 
+                    className="px-8 py-3 bg-[#C6AD8B] text-[#2D1B13] rounded-lg font-bold hover:bg-[#EADDCA] transition-colors disabled:opacity-50"
                   >
                     {submitting ? "⏳ Checking..." : "✓ Submit"}
                   </button>
@@ -214,7 +183,8 @@ export default function QuizPage() {
             )}
           </div>
 
-          <div className="w-full md:w-1/2 p-4">
+          {/* Right Panel: Map */}
+          <div className="w-full md:w-1/2 p-4 min-h-[300px]">
             <MyMap center={mapCentre} clues={clues} />
           </div>
         </div>
@@ -222,11 +192,7 @@ export default function QuizPage() {
 
       <Rules open={showRules} onClose={() => setShowRules(false)} />
       {showClues && (
-        <ClueBox
-          clues={clues}
-          onClose={() => setShowClues(false)}
-          refreshClues={fetchClueData}
-        />
+        <ClueBox clues={clues} onClose={() => setShowClues(false)} refreshClues={fetchClueData} />
       )}
     </div>
   );
