@@ -11,79 +11,65 @@ import { authService } from "@/lib/services/authService";
 import { toast } from "sonner";
 
 // ---------------- WATER PRESETS ----------------
-type WaterPreset = {
-  waterColor: number;
-  distortionScale?: number;
-};
-
-const PRESETS: Record<string, WaterPreset> = {
-  tropical: { waterColor: 0x1ca3ec, distortionScale: 2.5 },
+const PRESETS: Record<string, { waterColor: number; distortionScale: number }> = {
   deep: { waterColor: 0x003366, distortionScale: 3.7 },
-  cinematic: { waterColor: 0x145f93, distortionScale: 4.0 },
-  emerald: { waterColor: 0x0a6e55, distortionScale: 3.0 },
-  shallow: { waterColor: 0x88ccee, distortionScale: 1.8 },
+  tropical: { waterColor: 0x1ca3ec, distortionScale: 2.5 },
 };
 
 // ---------------- INDICATOR ----------------
 function Indicator({
   pos,
-  label,
-  onClick,
   requiredLevel,
   currentLevel,
+  onClick,
 }: {
   pos: [number, number, number];
-  label: string;
-  onClick: () => void;
   requiredLevel: number;
   currentLevel: number;
+  onClick: () => void;
 }) {
   const isLocked = currentLevel < requiredLevel;
   const isCurrent = currentLevel === requiredLevel;
+  const isCompleted = currentLevel > requiredLevel;
 
-  let baseColor = "rgba(234,179,8,0.6)";
-  if (isLocked) baseColor = "rgba(220,38,38,0.6)";
-  if (isCurrent) baseColor = "rgba(34,197,94,0.6)";
+  // Determine appearance based on state
+  let bgColor = "rgba(34,197,94,0.8)"; // Green for current
+  let opacity = 1;
+  
+  if (isLocked) {
+    bgColor = "rgba(220,38,38,0.6)"; // Red for locked
+  } else if (isCompleted) {
+    bgColor = "rgba(100,116,139,0.5)"; // Grey for completed
+    opacity = 0.6;
+  }
 
   return (
-    <Html
-      position={pos}
-      center
-      distanceFactor={15}
-      zIndexRange={[0, 100]} // ✅ FIXED
-    >
-      <div
-        className="flex flex-col items-center"
-        style={{ pointerEvents: "auto" }}
-      >
+    <Html position={pos} center distanceFactor={15} zIndexRange={[0, 100]}>
+      <div className="flex flex-col items-center select-none" style={{ pointerEvents: "auto" }}>
         <div
           onClick={(e) => {
             e.stopPropagation();
-            onClick(); // ✅ ALWAYS CALL — toast logic handled outside
+            onClick();
           }}
-          className={`w-6 h-6 rounded-full border-2 border-white/40 transition-all duration-300 hover:scale-125 ${
-            isCurrent ? "animate-pulse" : ""
-          }`}
+          className={`w-6 h-6 rounded-full border-2 border-white/50 transition-all duration-300 
+            ${isCurrent ? "animate-pulse scale-125 shadow-[0_0_15px_rgba(34,197,94,0.8)]" : "hover:scale-110"}`}
           style={{
-            backgroundColor: baseColor,
+            backgroundColor: bgColor,
+            opacity: opacity,
             cursor: "pointer",
           }}
         />
+        {isCompleted && (
+          <span className="text-[10px] text-white font-bold mt-1 drop-shadow-md">✓</span>
+        )}
       </div>
     </Html>
   );
 }
 
 // ---------------- WATER ----------------
-function WaterPlane({
-  preset = "deep",
-  size = 20000,
-}: {
-  preset?: string;
-  size?: number;
-}) {
+function WaterPlane({ preset = "deep" }) {
   const { scene } = useThree();
-
   const waterNormals = useMemo(() => {
     const tex = new THREE.TextureLoader().load("/textures/waternormals.webp");
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -91,79 +77,58 @@ function WaterPlane({
   }, []);
 
   const water = useMemo(() => {
-    const geometry = new THREE.PlaneGeometry(size, size);
+    const geometry = new THREE.PlaneGeometry(20000, 20000);
     const w = new (Water as any)(geometry, {
       textureWidth: 1024,
       textureHeight: 1024,
       waterNormals,
       sunDirection: new THREE.Vector3(1, 1, 1),
       sunColor: 0xffffff,
-      waterColor: PRESETS[preset]?.waterColor ?? 0x1ca3ec,
-      distortionScale: PRESETS[preset]?.distortionScale ?? 1.8,
+      waterColor: PRESETS[preset].waterColor,
+      distortionScale: PRESETS[preset].distortionScale,
       fog: !!scene.fog,
     });
     w.rotation.x = -Math.PI / 2;
     w.position.y = 3.05;
     return w;
-  }, [preset, size, waterNormals, scene.fog]);
+  }, [preset, waterNormals, scene.fog]);
 
   useFrame((_, delta) => {
-    if (water?.material?.uniforms?.time) {
-      water.material.uniforms.time.value += delta;
-    }
+    water.material.uniforms.time.value += delta;
   });
 
   return <primitive object={water} />;
 }
 
 // ---------------- ISLAND ----------------
-function IslandModel({
-  url = "/models/island_1.glb",
-  yOffset = 3,
-  scale = 1,
-}: {
-  url?: string;
-  yOffset?: number;
-  scale?: number;
-}) {
-  const { scene } = useGLTF(url) as any;
-
+function IslandModel() {
+  const { scene } = useGLTF("/models/island_1.glb") as any;
   useEffect(() => {
-    if (!scene) return;
-    scene.position.set(0, yOffset, 0);
-    scene.scale.set(scale, scale, scale);
-  }, [scene, yOffset, scale]);
-
+    if (scene) {
+      scene.position.set(0, 3, 0);
+      scene.scale.set(1, 1, 1);
+    }
+  }, [scene]);
   return <primitive object={scene} />;
 }
 
 // ---------------- CAMERA INTRO ----------------
 function CameraIntro() {
   const { camera } = useThree();
-
   useEffect(() => {
     camera.position.set(200, 150, 300);
     gsap.to(camera.position, {
-      x: -20,
-      y: 10,
-      z: 10,
+      x: -20, y: 10, z: 10,
       duration: 2.2,
       ease: "power2.out",
       onUpdate: () => camera.updateProjectionMatrix(),
     });
   }, [camera]);
-
   return null;
 }
 
 // ---------------- MAIN SCENE ----------------
-export default function IslandScene({
-  preset = "deep",
-  showControls = true,
-}: {
-  preset?: string;
-  showControls?: boolean;
-}) {
+export default function IslandScene({ preset = "deep" }) {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,70 +148,61 @@ export default function IslandScene({
 
   useEffect(() => {
     fetchUser();
-    window.addEventListener("focus", fetchUser);
-    return () => window.removeEventListener("focus", fetchUser);
   }, []);
 
   const handleNavigate = (path: string, required: number) => {
-    if (currentRound >= required) {
+    // 1. Block access to completed levels
+    if (currentRound > required) {
+      toast.info("Access Restricted", {
+        description: "You have already completed this level. Back-tracking is not permitted.",
+        style: { background: "#0f172a", color: "#94a3b8", border: "1px solid #334155" },
+      });
+      return;
+    }
+
+    // 2. Allow access to current active level
+    if (currentRound === required) {
       router.push(path);
-    } else {
-      toast.error("Level Locked", {
-        description: `You are on Round ${currentRound}. Complete previous rounds to unlock this.`,
-        style: {
-          background: "#1a0000",
-          color: "#ff4d4d",
-          border: "1px solid #ff0000",
-        },
+    } 
+    
+    // 3. Block access to future levels
+    else {
+      toast.error("Sector Locked", {
+        description: `Complete Round ${currentRound} to unlock this sector.`,
+        style: { background: "#1a0000", color: "#ff4d4d", border: "1px solid #ff0000" },
       });
     }
   };
 
   return (
-    <div className="w-screen h-screen pointer-events-auto">
-      <Canvas
-        shadows
-        camera={{ position: [50, 40, 70], fov: 45 }}
-        style={{ width: "100vw", height: "100vh", pointerEvents: "auto" }}
-      >
+    <div className="w-screen h-screen">
+      <Canvas shadows camera={{ position: [50, 40, 70], fov: 45 }}>
         <Environment
-          files={[
-            "/sky/px.webp",
-            "/sky/nx.webp",
-            "/sky/py.webp",
-            "/sky/ny.webp",
-            "/sky/pz.webp",
-            "/sky/nz.webp",
-          ]}
+          files={["/sky/px.webp", "/sky/nx.webp", "/sky/py.webp", "/sky/ny.webp", "/sky/pz.webp", "/sky/nz.webp"]}
           background
         />
-
-        <ambientLight intensity={4} />
-        <directionalLight castShadow position={[150, 300, 150]} intensity={0.5} />
+        <ambientLight intensity={1.5} />
+        <directionalLight position={[150, 300, 150]} intensity={0.8} />
 
         <WaterPlane preset={preset} />
         <IslandModel />
         <CameraIntro />
 
-        {showControls && (
-          <OrbitControls
-            enableDamping
-            dampingFactor={0.05}
-            minPolarAngle={Math.PI * 0.2}
-            maxPolarAngle={Math.PI * 0.45}
-            minDistance={10}
-            maxDistance={100}
-          />
-        )}
+        <OrbitControls
+          enableDamping
+          minPolarAngle={Math.PI * 0.2}
+          maxPolarAngle={Math.PI * 0.45}
+          minDistance={10}
+          maxDistance={80}
+        />
 
         {!isLoading && (
           <>
-            <Indicator pos={[-8.17, 3.62, 0.48]} label="House Dreadhelm" requiredLevel={1} currentLevel={currentRound} onClick={() => handleNavigate("/house", 1)} />
-            <Indicator pos={[-8.17, 3.62, -1.5]} label="House Blackwyrm" requiredLevel={2} currentLevel={currentRound} onClick={() => handleNavigate("/house2", 2)} />
-            <Indicator pos={[-6.63, 3.91, -1.54]} label="The Ruins" requiredLevel={3} currentLevel={currentRound} onClick={() => handleNavigate("/ruins", 3)} />
-            <Indicator pos={[-5, 4, -1.2]} label="Moonveil Glade" requiredLevel={4} currentLevel={currentRound} onClick={() => handleNavigate("/village", 4)} />
-            <Indicator pos={[-4.38, 4.92, -1.53]} label="The Arena" requiredLevel={5} currentLevel={currentRound} onClick={() => handleNavigate("/arena", 5)} />
-            <Indicator pos={[-8.17, 4, -0.5]} label="Ironshade Peak" requiredLevel={6} currentLevel={currentRound} onClick={() => handleNavigate("/mountain", 6)} />
+            <Indicator pos={[-8.17, 3.62, 0.48]} requiredLevel={1} currentLevel={currentRound} onClick={() => handleNavigate("/house", 1)} />
+            <Indicator pos={[-8.17, 3.62, -1.5]} requiredLevel={2} currentLevel={currentRound} onClick={() => handleNavigate("/house2", 2)} />
+            <Indicator pos={[-6.63, 3.91, -1.54]} requiredLevel={3} currentLevel={currentRound} onClick={() => handleNavigate("/ruins", 3)} />
+            <Indicator pos={[-5.0, 4.0, -1.2]} requiredLevel={4} currentLevel={currentRound} onClick={() => handleNavigate("/village", 4)} />
+            <Indicator pos={[-4.38, 4.92, -1.53]} requiredLevel={5} currentLevel={currentRound} onClick={() => handleNavigate("/arena", 5)} />
           </>
         )}
       </Canvas>

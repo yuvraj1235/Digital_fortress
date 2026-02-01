@@ -10,6 +10,8 @@ import { useAudio } from "@/contexts/AudioContext"; // ✅ Added
 import MuteButton from "@/components/MuteButton"; // ✅ Added
 import { toast } from "sonner";
 
+import ProceedButton from "@/components/Button";
+
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -97,12 +99,16 @@ export default function Panorama() {
         <PanoramaSphere />
         <OrbitControls enableZoom={false} enablePan={false} />
       </Canvas>
+       {/* Bottom Button */}
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
+              <ProceedButton round={currentRound} />
+            </div>
     </div>
   );
 }
 
 function PanoramaSphere() {
-  const texture = useLoader(THREE.TextureLoader, "/levels/house_.avif");
+  const texture = useLoader(THREE.TextureLoader, "/levels/house.avif");
   texture.mapping = THREE.EquirectangularReflectionMapping;
 
   return (
