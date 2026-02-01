@@ -77,45 +77,50 @@ export default function QuizPage() {
   };
 
  const handleSubmit = async () => {
-    // Trim and convert to lowercase for consistency
-    const formattedAnswer = answer.trim().toLowerCase();
+  const formattedAnswer = answer.trim().toLowerCase();
+  if (!formattedAnswer) return;
 
-    if (!formattedAnswer) return;
+  try {
+    setSubmitting(true);
+    const data = await apiRequest("quiz/checkRound", {
+      method: "POST",
+      body: JSON.stringify({ answer: formattedAnswer }),
+    });
 
-    try {
-      setSubmitting(true);
-      const data = await apiRequest("quiz/checkRound", {
-        method: "POST",
-        body: JSON.stringify({ answer: formattedAnswer }), // ✅ Sent as lowercase
+    if (data.status === 200) {
+      setAnswer("");
+      
+      // ✅ 1. Success Notification
+      toast.success("Correct!", {
+        description: "You have conquered this round. Returning to the map in 3 seconds...",
+        style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
       });
 
-      if (data.status === 200) {
-        setAnswer("");
-        // ✅ Success Toast
-        toast.success("Correct!", {
-          description: "Moving to the next round...",
-          style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
-        });
-        initRound();
-      } else {
-        // ✅ Warning Toast
-        toast.error("Incorrect", {
-          description: "Wrong Answer. Try again!",
-          style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
-        });
-      }
-    } catch (err: any) {
-      if (err.needsReauth) {
-        router.push("/register?error=incomplete_profile");
-        return;
-      }
-      toast.error("Submission Error", {
-        description: err.data?.message || "Something went wrong.",
+      // ✅ 2. Automatic Redirect after 3 seconds
+      setTimeout(() => {
+        router.push("/home");
+      }, 3000);
+
+      // We still call initRound if you want the state refreshed before leaving
+      initRound();
+    } else {
+      toast.error("Incorrect", {
+        description: "The archives remain silent. Try again!",
+        style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
       });
-    } finally {
-      setSubmitting(false);
     }
-  };
+  } catch (err: any) {
+    if (err.needsReauth) {
+      router.push("/register?error=incomplete_profile");
+      return;
+    }
+    toast.error("Submission Error", {
+      description: err.data?.message || "Something went wrong.",
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
