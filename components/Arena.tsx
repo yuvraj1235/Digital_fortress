@@ -5,12 +5,12 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { apiRequest } from "@/lib/api";
+import { authService } from "@/lib/services/authService"; // ✅ Using central service
 import { toast } from "sonner";
-import { useAudio } from "@/contexts/AudioContext"; // ✅ Added
-import MuteButton from "@/components/MuteButton"; // ✅ Added
-
+import { useAudio } from "@/contexts/AudioContext"; 
+import MuteButton from "@/components/MuteButton"; 
 import ProceedButton from "@/components/Button";
+
 function PanoramaSphere() {
   const texture = useLoader(THREE.TextureLoader, "/levels/arena.avif");
   texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -25,26 +25,36 @@ function PanoramaSphere() {
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const { isMuted } = useAudio(); // ✅ Access global mute state
-  
-  const [showKnight, setShowKnight] = useState(true); 
+  const [isFetching, setIsFetching] = useState(true); // ✅ Track loading state
+  const { isMuted } = useAudio(); 
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const fetchProgress = async () => {
+    const syncProgress = async () => {
       try {
-        const data = await apiRequest("quiz/getRound");
-        if (data.status === 200) {
-          setCurrentRound(data.question.round_number);
-          setShowKnight(true); 
+        setIsFetching(true);
+        /**
+         * 🛠️ THE FIX:
+         * Using getUserProfile ensures we get the flat 'roundNo' key
+         * and automatically updates the 'df_round' cookie for middleware.
+         */
+        const userData = await authService.getUserProfile();
+        
+        if (userData && userData.roundNo !== undefined) {
+          const numericRound = Number(userData.roundNo);
+          setCurrentRound(numericRound);
+          console.log("📍 Arena Progress Synced:", numericRound);
         }
       } catch (err) {
-        console.error("Failed to fetch progress", err);
+        console.error("❌ Failed to sync progress", err);
+      } finally {
+        setIsFetching(false);
       }
     };
-    fetchProgress();
+
+    syncProgress();
 
     // Initialize Audio
     audioRef.current = new Audio("/sounds/arena.mp3");
@@ -66,41 +76,22 @@ export default function Panorama() {
     };
   }, []);
 
-  // ✅ SYNC MUTE STATE
+  // Sync Mute State
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
-      if (!isMuted && audioRef.current.paused && !showKnight) {
+      if (!isMuted && audioRef.current.paused && !isFetching) {
         audioRef.current.play().catch(() => {});
       }
     }
     if (clickSoundRef.current) {
       clickSoundRef.current.muted = isMuted;
     }
-  }, [isMuted, showKnight]);
-
-  const playClickSound = () => {
-    if (clickSoundRef.current && !isMuted) {
-      clickSoundRef.current.currentTime = 0;
-      clickSoundRef.current.play().catch(() => {});
-    }
-  };
-
-  const handleNavigate = (path: string, levelRequired: number) => {
-    playClickSound();
-    if (currentRound >= levelRequired) {
-      router.push(path);
-    } else {
-      toast.error("Access Denied", {
-        description: `Round ${levelRequired} is locked!`,
-        style: { background: "#2D1B13", color: "#FFD700", border: "1px solid #8B735B" },
-      });
-    }
-  };
+  }, [isMuted, isFetching]);
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* ✅ Mute Button Overlay: Fixed at z-60 to stay above the 3D Canvas */}
+      {/* Mute Button Overlay */}
       <div className="fixed top-24 right-6 z-[60]">
         <MuteButton />
       </div>
@@ -109,10 +100,17 @@ export default function Panorama() {
         <PanoramaSphere />
         <OrbitControls enableZoom={false} enablePan={false} makeDefault />
       </Canvas>
-      {/* Bottom Button */}
-            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
-              <ProceedButton round={currentRound} />
-            </div>
+
+      {/* Action Button: Validates against currentRound */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
+        {!isFetching ? (
+          <ProceedButton round={currentRound} />
+        ) : (
+          <div className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg animate-pulse border border-[#8B735B] font-serif">
+            Preparing for Battle...
+          </div>
+        )}
+      </div>
     </div>
   );
 }
