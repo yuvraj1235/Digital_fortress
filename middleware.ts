@@ -11,12 +11,19 @@ const LEVEL_REQUIREMENTS: Record<string, number> = {
   "/mountain": 6,
 };
 
-const PROTECTED_ROUTES = ["/home", "/leaderboard", "/profile", ...Object.keys(LEVEL_REQUIREMENTS)];
+// ✅ ADDED "/quiz" to this list
+const PROTECTED_ROUTES = [
+  "/home", 
+  "/leaderboard", 
+  "/profile", 
+  "/quiz", 
+  ...Object.keys(LEVEL_REQUIREMENTS)
+];
+
 const PUBLIC_ROUTES = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("df_token")?.value;
-  // Get the round from cookies. Default to 1 if not set.
   const userRound = parseInt(request.cookies.get("df_round")?.value || "1", 10);
   const { pathname } = request.nextUrl;
 
@@ -35,13 +42,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  // 3. Level Guard: Check if user has access to the specific sector
-  // We check if the current path starts with any of our level keys
+  // 3. Level Guard: Specific sector protection
   for (const [route, requiredLevel] of Object.entries(LEVEL_REQUIREMENTS)) {
     if (pathname.startsWith(route)) {
       if (userRound < requiredLevel) {
-        console.warn(`🚫 Access Denied for ${pathname}. Need: ${requiredLevel}, Have: ${userRound}`);
-        // Redirect back to main map if level is locked
+        console.warn(`🚫 Access Denied: Need Level ${requiredLevel}, Have Level ${userRound}`);
         return NextResponse.redirect(new URL("/home", request.url));
       }
     }
@@ -67,8 +72,8 @@ export const config = {
     "/village/:path*",
     "/arena/:path*",
     "/mountain/:path*",
+    "/quiz/:path*", // ✅ Already here, now the logic supports it
     "/login",
     "/register",
-    "/quiz/:path*",
   ],
 };
