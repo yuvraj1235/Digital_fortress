@@ -33,7 +33,7 @@ export const authService = {
 
   async logout() {
     try {
-      await apiRequest("quiz/auth/logout", { method: "POST" });
+      await apiRequest("auth/logout", { method: "POST" });
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
