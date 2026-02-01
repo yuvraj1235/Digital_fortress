@@ -31,36 +31,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // ✅ New: Sync session with Backend on mount
-  useEffect(() => {
-    async function initAuth() {
-      const token = localStorage.getItem("df_token");
-      const storedUser = localStorage.getItem("df_user");
+// contexts/AuthContext.tsx
+useEffect(() => {
+  async function initAuth() {
+    const token = localStorage.getItem("df_token");
+    const storedUser = localStorage.getItem("df_user");
 
-      if (token) {
-        try {
-          // 1. Try to fetch the latest user data from Django
-          // This verifies if the token is still valid on the server
-          const freshUser = await apiRequest("quiz/user"); 
-          setUser(freshUser);
-          localStorage.setItem("df_user", JSON.stringify(freshUser));
-        } catch (err: any) {
-          console.error("Session verification failed:", err);
-          // 2. If backend says 401, clear everything
-          if (err.status === 401) {
-            clearAuthData();
-          } else if (storedUser) {
-            // Fallback to local data if it's just a network hiccup
-            setUser(JSON.parse(storedUser));
-          }
-        }
-      }
+    // 🛑 STOP: If there is no token, don't even call the backend
+    if (!token) {
+      console.log("ℹ️ No token found, skipping initial profile fetch.");
       setIsLoading(false);
+      return; 
     }
 
-    initAuth();
-  }, []);
+    try {
+      // Only runs if token exists
+      const freshUser = await apiRequest("quiz/user"); 
+      setUser(freshUser);
+      localStorage.setItem("df_user", JSON.stringify(freshUser));
+    } catch (err: any) {
+      // Only clear data if it's a genuine 401 (expired token)
+      if (err.status === 401) {
+        clearAuthData();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
+  initAuth();
+}, []);
   const clearAuthData = () => {
     setUser(null);
     localStorage.removeItem("df_token");
