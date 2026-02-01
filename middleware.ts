@@ -69,5 +69,6 @@ export const config = {
     "/mountain/:path*",
     "/login",
     "/register",
+    "/quiz/:path*",
   ],
 };

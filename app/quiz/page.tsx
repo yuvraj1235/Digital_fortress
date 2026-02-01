@@ -76,13 +76,17 @@ export default function QuizPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!answer.trim()) return;
+ const handleSubmit = async () => {
+    // Trim and convert to lowercase for consistency
+    const formattedAnswer = answer.trim().toLowerCase();
+
+    if (!formattedAnswer) return;
+
     try {
       setSubmitting(true);
       const data = await apiRequest("quiz/checkRound", {
         method: "POST",
-        body: JSON.stringify({ answer: answer.trim() }),
+        body: JSON.stringify({ answer: formattedAnswer }), // ✅ Sent as lowercase
       });
 
       if (data.status === 200) {
@@ -105,7 +109,6 @@ export default function QuizPage() {
         router.push("/register?error=incomplete_profile");
         return;
       }
-      // ✅ Error Toast
       toast.error("Submission Error", {
         description: err.data?.message || "Something went wrong.",
       });
