@@ -8,7 +8,7 @@ import Rules from "@/components/Rules";
 import { MyMap } from "@/components/MyMap";
 import { apiRequest } from "@/lib/api";
 import ClueBox from "@/components/Cluebox";
-import { toast } from "sonner"; // ✅ Import Sonner
+import { toast } from "sonner"; // Import Sonner
 
 export default function QuizPage() {
   const router = useRouter();
@@ -90,13 +90,13 @@ export default function QuizPage() {
     if (data.status === 200) {
       setAnswer("");
       
-      // ✅ 1. Success Notification
+      // 1. Success Notification
       toast.success("Correct!", {
         description: "You have conquered this round. Returning to the map in 3 seconds...",
         style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
       });
 
-      // ✅ 2. Automatic Redirect after 3 seconds
+      // 2. Automatic Redirect after 3 seconds
       setTimeout(() => {
         router.push("/home");
       }, 3000);

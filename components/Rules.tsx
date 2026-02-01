@@ -26,13 +26,13 @@ export default function Rules({ open, onClose }: RulesProps) {
           backgroundPosition: "center",
         }}
       >
-        {/* ✅ THE CLOSE BUTTON (Anchored to Scroll Corner) */}
+        {/* THE CLOSE BUTTON (Anchored to Scroll Corner) */}
         <button
           onClick={onClose}
           className="absolute top-[19%] right-[22%] w-10 h-10 flex items-center justify-center bg-[#3a2a1a] text-[#f3e2c3] rounded-full border-2 border-[#6b4a2d] hover:bg-[#6b4a2d] hover:scale-110 transition-all shadow-xl z-[120]"
           title="Close Rules"
         >
-          <span className="text-xl font-bold leading-none">✕</span>
+          <span className="text-xl font-bold leading-none">×</span>
         </button>
 
         {/* CONTENT SAFE AREA */}
@@ -72,7 +72,7 @@ export default function Rules({ open, onClose }: RulesProps) {
             ].map((rule, index) => (
               <li key={index} className="flex items-start gap-3">
                 <span className="text-[#6b4a2d] text-[1.1em] mt-[0.2em]">
-                  ✦
+                  •
                 </span>
                 <span className="font-medium">{rule}</span>
               </li>

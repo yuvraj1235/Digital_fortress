@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { apiRequest } from "@/lib/api";
-import { toast } from "sonner"; // ✅ Import Sonner
+import { toast } from "sonner"; // Import Sonner
 
 export default function ClueBox({ clues, onClose, refreshClues }: any) {
     const [activeIdx, setActiveIdx] = useState(0);
@@ -28,7 +28,7 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
             });
 
             if (data.status === 200 || data.correct) {
-                // ✅ Success Toast
+                // Success Toast
                 toast.success("Clue Deciphered!", {
                     description: "A new marker has been added to your map.",
                     style: {
@@ -42,7 +42,7 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
                 refreshClues(); 
                 onClose(); 
             } else {
-                // ✅ Wrong Answer Toast
+                // Wrong Answer Toast
                 toast.error("Incorrect Decryption", {
                     description: data.message || "The archives remain silent. Try again.",
                     style: {
@@ -164,7 +164,7 @@ export default function ClueBox({ clues, onClose, refreshClues }: any) {
                             </div>
                         ) : (
                             <div className="flex flex-col items-center animate-in zoom-in duration-500">
-                                <div className="text-6xl mb-4 drop-shadow-md">💎</div>
+                                <div className="text-6xl mb-4 drop-shadow-md">*</div>
                                 <p className="text-[#2E7D32] font-black uppercase text-xl tracking-widest border-2 border-[#2E7D32] px-6 py-2 rounded-full bg-[#2E7D32]/10">
                                     Location Revealed
                                 </p>

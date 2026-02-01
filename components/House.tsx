@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api";
 import ProceedButton from "@/components/Button";
-import MuteButton from "@/components/MuteButton"; // ✅ Ensure this is imported
+import MuteButton from "@/components/MuteButton"; // Ensure this is imported
 import { useAudio } from "@/contexts/AudioContext"; 
 import { toast } from "sonner";
 
@@ -67,10 +67,10 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* ✅ MUTE BUTTON CONTAINER 
+        {/* MUTE BUTTON CONTAINER 
           We place it here so it sits ABOVE the Canvas.
           z-60 is higher than Navbar (50) and Canvas (0) 
-      */}
+        */}
       <div className="fixed top-24 right-6 z-[60]">
         <MuteButton />
       </div>

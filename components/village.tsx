@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { authService } from "@/lib/services/authService"; // ✅ Use central service
+import { authService } from "@/lib/services/authService"; // Use central service
 import { useAudio } from "@/contexts/AudioContext"; 
 import MuteButton from "@/components/MuteButton"; 
 import { toast } from "sonner";
@@ -25,8 +25,8 @@ export default function Panorama() {
       try {
         setIsFetching(true);
         /**
-         * 🛠️ THE FIX:
-         * Calling getUserProfile() handles the mapping of response.roundNo 
+         * THE FIX:
+         * Calling getUserProfile() handles the mapping of response.roundNo
          * and sets the 'df_round' cookie for the middleware in one go.
          */
         const userData = await authService.getUserProfile();
@@ -34,10 +34,10 @@ export default function Panorama() {
         if (userData && userData.roundNo !== undefined) {
           const numericRound = Number(userData.roundNo);
           setCurrentRound(numericRound);
-          console.log("📍 Village Progress Synced:", numericRound);
+          console.log("Village Progress Synced:", numericRound);
         }
       } catch (err) {
-        console.error("❌ Failed to fetch progress", err);
+        console.error("Failed to fetch progress", err);
         toast.error("Data Sync Error", {
           description: "Could not retrieve your current progress."
         });

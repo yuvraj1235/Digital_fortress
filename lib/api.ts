@@ -3,7 +3,7 @@ const RAW_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
 
-// ✅ Helper function to get cookie value
+// Helper function to get cookie value
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   
@@ -22,15 +22,15 @@ export async function apiRequest(
   const cleanEndpoint = endpoint.replace(/^\//, "");
   const url = `${API_BASE_URL}/${cleanEndpoint}`;
 
-  // ✅ Try to get token from localStorage first, then cookies
+  // Try to get token from localStorage first, then cookies
   let token: string | null = null;
   
   if (typeof window !== "undefined") {
     token = localStorage.getItem("df_token") || getCookie("df_token");
   }
 
-  console.log("🔐 Using token:", token);
-  console.log("➡️ API Request:", url);
+  console.log("Using token:", token);
+  console.log("API Request:", url);
 
   let res: Response;
 
@@ -52,7 +52,7 @@ export async function apiRequest(
 
   const text = await res.text();
 
-  // ✅ SAFELY parse JSON
+  // SAFELY parse JSON
   let data: any = null;
   try {
     data = text ? JSON.parse(text) : null;
@@ -60,9 +60,9 @@ export async function apiRequest(
     data = null; // backend returned HTML
   }
 
-  // ✅ HANDLE errors
+  // HANDLE errors
   if (!res.ok) {
-    console.warn("⚠️ Backend error:", res.status, text);
+    console.warn("Backend error:", res.status, text);
 
     throw {
       status: res.status,

@@ -19,7 +19,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuth();
   
-  // ✅ Use a ref to target the button container
+  // Use a ref to target the button container
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   /* ---------------- GOOGLE CALLBACK ---------------- */
@@ -42,7 +42,7 @@ export default function LoginPage() {
         }
         
       } catch (err: any) {
-        console.error("❌ Login error:", err);
+        console.error("Login error:", err);
         setError(err?.message || "Authentication failed");
         setLoading(false); // Reset loading on error
       }
@@ -62,7 +62,7 @@ export default function LoginPage() {
         use_fedcm_for_prompt: true,
       });
 
-      // 2. ✅ Render the Official Button
+      // 2. Render the Official Button
       // This ensures the button is always active and clickable
       window.google.accounts.id.renderButton(googleBtnRef.current, {
         type: "standard",
@@ -123,7 +123,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ✅ THE FIX: Button Container */}
+          {/* THE FIX: Button Container */}
           <div className="w-full flex flex-col items-center min-h-[50px]">
             <div 
               ref={googleBtnRef} 

@@ -6,7 +6,7 @@ import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { Toaster } from "sonner";
-import ContentWrapper from "@/components/providers/ContentWrapper"; // ✅ Import the new component
+import ContentWrapper from "@/components/providers/ContentWrapper"; // Import the new component
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
         <AudioProvider>
           <AuthProvider>
-            {/* ✅ This now works because ContentWrapper is a 'use client' file */}
+            {/* This now works because ContentWrapper is a 'use client' file */}
             <ContentWrapper>
               {children}
             </ContentWrapper>

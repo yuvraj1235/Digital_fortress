@@ -5,7 +5,7 @@ type LoadingScreenProps = {
   onFinished?: () => void;
 };
 
-export default function LoadingScreen({ progress = 0, onFinished }: LoadingScreenProps) { // ✅ Add prop
+export default function LoadingScreen({ progress = 0, onFinished }: LoadingScreenProps) { // Add prop
   const [visible, setVisible] = useState(true);
   const [isFading, setIsFading] = useState(false);
 
@@ -14,7 +14,7 @@ export default function LoadingScreen({ progress = 0, onFinished }: LoadingScree
       setIsFading(true); // Start the 700ms CSS fade
       const timer = setTimeout(() => {
         setVisible(false);
-        if (onFinished) onFinished(); // ✅ Tell Home.tsx the screen is gone
+        if (onFinished) onFinished(); // Tell Home.tsx the screen is gone
       }, 700); // Match your transition duration
       return () => clearTimeout(timer);
     }
@@ -79,13 +79,9 @@ export default function LoadingScreen({ progress = 0, onFinished }: LoadingScree
             letterSpacing: "0.15em"
           }}
         >
-          <span className="flex items-center gap-2">
-            <span className="text-xl">🖥️</span> Desktop Recommended
-          </span>
+          <span className="flex items-center gap-2">Desktop Recommended</span>
           <span className="w-px h-4 bg-white/30" />
-          <span className="flex items-center gap-2">
-            <span className="text-xl">🎧</span> Use Headphones
-          </span>
+          <span className="flex items-center gap-2">Use Headphones</span>
         </div>
       </div>
     </div>

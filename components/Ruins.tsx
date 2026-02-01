@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { authService } from "@/lib/services/authService"; // ✅ Use the central service
+import { authService } from "@/lib/services/authService"; // Use the central service
 import { useAudio } from "@/contexts/AudioContext"; 
 import MuteButton from "@/components/MuteButton"; 
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import ProceedButton from "@/components/Button";
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const [isFetching, setIsFetching] = useState(true); // ✅ Track fetch state
+  const [isFetching, setIsFetching] = useState(true); // Track fetch state
   const { isMuted } = useAudio(); 
   
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -25,7 +25,7 @@ export default function Panorama() {
       try {
         setIsFetching(true);
         /**
-         * 🛠️ THE FIX:
+         * THE FIX:
          * Using getUserProfile ensures we get the flat 'roundNo' key
          * and automatically updates the 'df_round' cookie for middleware.
          */
@@ -34,10 +34,10 @@ export default function Panorama() {
         if (userData && userData.roundNo !== undefined) {
           const numericRound = Number(userData.roundNo);
           setCurrentRound(numericRound);
-          console.log("📍 Ruins Progress Synced:", numericRound);
+          console.log("Ruins Progress Synced:", numericRound);
         }
       } catch (err) {
-        console.error("❌ Sync failed", err);
+        console.error("Sync failed", err);
       } finally {
         setIsFetching(false);
       }

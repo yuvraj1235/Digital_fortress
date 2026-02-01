@@ -12,7 +12,7 @@ function Navbar() {
   };
 
   return (
-    // ⛔ Navbar ignores clicks by default
+    // Navbar ignores clicks by default
     <nav className="fixed top-0 left-0 z-50 w-full bg-gradient-to-b from-black/40 to-transparent pointer-events-none">
       <div className="relative flex w-full items-center justify-between px-4 md:px-6 py-3 md:py-4">
 

@@ -39,7 +39,7 @@ export default function RegisterPage() {
           router.push("/home");
         }
       } catch (err: any) {
-        console.error("❌ Register error:", err);
+        console.error("Register error:", err);
         setError(err?.message || "Registration failed. Try again.");
         setLoading(false);
       }
@@ -121,7 +121,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* ✅ THE FIX: Official Google Button Container */}
+          {/* THE FIX: Official Google Button Container */}
           <div className="w-full flex flex-col items-center min-h-[50px]">
             <div 
               ref={googleBtnRef} 

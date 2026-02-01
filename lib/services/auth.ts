@@ -2,7 +2,7 @@
 import { apiRequest } from "@/lib/api";
 
 const setSession = (data: any) => {
-  console.log("🟢 FULL LOGIN RESPONSE =", data);
+  console.log("FULL LOGIN RESPONSE =", data);
 
   const token =
     data.token ||
@@ -10,17 +10,17 @@ const setSession = (data: any) => {
     data.key ||
     data?.data?.token;
 
-  console.log("🟢 EXTRACTED TOKEN =", token);
+  console.log("EXTRACTED TOKEN =", token);
 
   if (!token) {
-    console.error("❌ No token found in login response!");
+    console.error("No token found in login response!");
     return;
   }
 
-  // ✅ Store in localStorage
+  // Store in localStorage
   localStorage.setItem("df_token", token);
   
-  // ✅ Store in cookies (for middleware)
+  // Store in cookies (for middleware)
   document.cookie = `df_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
 
   if (data.user) {
@@ -34,7 +34,7 @@ export async function loginUser(payload: {
   accesstoken?: string;
   accesscode?: string;
 }) {
-  // ✅ ADDED 'quiz/' prefix
+  // ADDED 'quiz/' prefix
   const data = await apiRequest("quiz/auth/login", { 
     method: "POST",
     body: JSON.stringify(payload),
@@ -50,7 +50,7 @@ export async function registerUser(payload: {
   accesstoken?: string;
   accesscode?: string;
 }) {
-  // ✅ ADDED 'quiz/' prefix
+  // ADDED 'quiz/' prefix
   const data = await apiRequest("quiz/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -70,7 +70,7 @@ export async function logoutUser() {
     localStorage.removeItem("df_token");
     localStorage.removeItem("df_user");
     
-    // ✅ Remove cookie
+    // Remove cookie
     document.cookie = "df_token=; path=/; max-age=0";
     
     window.location.href = "/login";

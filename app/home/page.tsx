@@ -9,11 +9,11 @@ import CustomCursor from "@/components/CustomCursor";
 import Snowfall from "react-snowfall";
 import { useAudio } from "@/contexts/AudioContext"; 
 import MuteButton from "@/components/MuteButton"; 
-import { useRouter } from "next/navigation"; // ✅ Import Router
-import Image from "next/image"; // ✅ Import Image for the button texture
+import { useRouter } from "next/navigation"; // Import Router
+import Image from "next/image"; // Import Image for the button texture
 
 export default function Home() {
-  const router = useRouter(); // ✅ Initialize Router
+  const router = useRouter(); // Initialize Router
   const { progress: realProgress, active } = useProgress();
   const [simulatedProgress, setSimulatedProgress] = useState(0);
   const [effectiveProgress, setEffectiveProgress] = useState(0);
@@ -62,21 +62,21 @@ export default function Home() {
       
       {effectiveProgress < 100 && <LoadingScreen progress={effectiveProgress} />}
 
-      {/* ✅ LEADERBOARD & MUTE CONTROLS */}
+      {/* LEADERBOARD & MUTE CONTROLS */}
       <div className="fixed top-24 right-6 z-[60] flex flex-col gap-4 items-center">
         <MuteButton />
         
-        {/* ✅ Leaderboard Shortcut */}
-      {/* ✅ SIMPLE LEADERBOARD & MUTE CONTROLS */}
+        {/* Leaderboard Shortcut */}
+      {/* SIMPLE LEADERBOARD & MUTE CONTROLS */}
 <div className="fixed top-24 right-6 z-[60] flex flex-col gap-3 items-center">
   <MuteButton />
   
-  <button 
+    <button 
     onClick={() => router.push("/leaderboard")}
     className="w-12 h-12 flex items-center justify-center bg-black/60 border border-[#3fb4ff]/50 rounded-lg text-xl hover:bg-[#3fb4ff]/20 hover:border-[#3fb4ff] transition-all"
     title="Leaderboard"
   >
-    🏆
+    LB
   </button>
 </div>
       </div>

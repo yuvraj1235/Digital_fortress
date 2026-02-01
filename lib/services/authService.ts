@@ -16,10 +16,10 @@ export const authService = {
         roundNo: response.roundNo,
       };
 
-      // ✅ 1. Store in LocalStorage for UI use
+      // 1. Store in LocalStorage for UI use
       localStorage.setItem("df_user", JSON.stringify(userData));
 
-      // ✅ 2. Sync with Cookie for Middleware use
+      // 2. Sync with Cookie for Middleware use
       // We set path=/ so it's available across all routes
       document.cookie = `df_round=${userData.roundNo}; path=/; max-age=86400; SameSite=Lax`;
 
@@ -38,7 +38,7 @@ export const authService = {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      // ✅ 3. Clear everything
+      // 3. Clear everything
       localStorage.removeItem("df_token");
       localStorage.removeItem("df_user");
       document.cookie = "df_token=; path=/; max-age=0";

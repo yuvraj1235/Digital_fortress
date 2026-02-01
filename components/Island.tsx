@@ -60,7 +60,7 @@ function Indicator({
           }}
         />
         {isCompleted && (
-          <span className="text-[10px] text-white font-bold mt-1 drop-shadow-md">✓</span>
+          <span className="text-[10px] text-white font-bold mt-1 drop-shadow-md">Done</span>
         )}
       </div>
     </Html>

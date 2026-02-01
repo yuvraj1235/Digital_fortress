@@ -5,9 +5,9 @@ import React from 'react';
 const socialLinks = [
   // Example path: Assuming your files are in public/logo/social/
   { name: 'Facebook', url: 'https://www.facebook.com/nitdgplug/', src: '/logo/fb.png' },
-  { name: 'LinkedIn', url: 'linkedin.com/company/lugnitdgp/', src: '/logo/linked.png' },
+  { name: 'LinkedIn', url: 'https://www.instagram.com/nitdgplug/', src: '/logo/linked.png' },
   { name: 'youtube', url: 'https://www.youtube.com/@GNULinuxUsersGroupNITDurgapur', src: '/logo/yt.png' },
-  { name: 'Instagram', url: 'https://www.instagram.com/nitdgplug/', src: '/logo/insta.png' },
+  { name: 'Instagram', url: 'https://www.linkedin.com/company/lugnitdgp', src: '/logo/insta.png' },
 ];
 // ---------------------
 

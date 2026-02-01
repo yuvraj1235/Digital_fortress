@@ -37,9 +37,9 @@ useEffect(() => {
     const token = localStorage.getItem("df_token");
     const storedUser = localStorage.getItem("df_user");
 
-    // 🛑 STOP: If there is no token, don't even call the backend
+    // STOP: If there is no token, don't even call the backend
     if (!token) {
-      console.log("ℹ️ No token found, skipping initial profile fetch.");
+      console.log("No token found, skipping initial profile fetch.");
       setIsLoading(false);
       return; 
     }

@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { authService } from "@/lib/services/authService"; // ✅ Use the central service
+import { authService } from "@/lib/services/authService"; // Use the central service
 import { useAudio } from "@/contexts/AudioContext"; 
 import MuteButton from "@/components/MuteButton"; 
 import { toast } from "sonner";
@@ -26,8 +26,8 @@ export default function Panorama() {
         setIsFetching(true);
         
         /**
-         * 🛠️ THE FINAL FIX:
-         * We call getUserProfile() because it specifically maps 'roundNo' 
+         * THE FINAL FIX:
+         * We call getUserProfile() because it specifically maps 'roundNo'
          * and sets the 'df_round' cookie for the middleware.
          */
         const userData = await authService.getUserProfile();
@@ -35,10 +35,10 @@ export default function Panorama() {
         if (userData && userData.roundNo !== undefined) {
           const numericRound = Number(userData.roundNo);
           setCurrentRound(numericRound);
-          console.log("📍 Panorama Progress Synced:", numericRound);
+          console.log("Panorama Progress Synced:", numericRound);
         }
       } catch (err) {
-        console.error("❌ Sync failed", err);
+        console.error("Sync failed", err);
       } finally {
         setIsFetching(false);
       }

@@ -11,7 +11,7 @@ const LEVEL_REQUIREMENTS: Record<string, number> = {
   "/mountain": 6,
 };
 
-// ✅ ADDED "/quiz" to this list
+// ADDED "/quiz" to this list
 const PROTECTED_ROUTES = [
   "/home", 
   "/leaderboard", 
@@ -46,7 +46,7 @@ export function middleware(request: NextRequest) {
   for (const [route, requiredLevel] of Object.entries(LEVEL_REQUIREMENTS)) {
     if (pathname.startsWith(route)) {
       if (userRound < requiredLevel) {
-        console.warn(`🚫 Access Denied: Need Level ${requiredLevel}, Have Level ${userRound}`);
+        console.warn(`Access Denied: Need Level ${requiredLevel}, Have Level ${userRound}`);
         return NextResponse.redirect(new URL("/home", request.url));
       }
     }
@@ -72,7 +72,7 @@ export const config = {
     "/village/:path*",
     "/arena/:path*",
     "/mountain/:path*",
-    "/quiz/:path*", // ✅ Already here, now the logic supports it
+    "/quiz/:path*", // Already here, now the logic supports it
     "/login",
     "/register",
   ],
