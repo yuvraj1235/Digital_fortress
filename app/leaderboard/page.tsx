@@ -123,9 +123,10 @@ export default function LeaderboardPage() {
             height={80}
             priority
           />
-          <span className="absolute inset-0 flex items-center justify-center text-[24px] font-bold tracking-widest text-[#f3e2c3]">
+          <span className="absolute inset-0 flex items-center justify-center text-[24px] font-sans font-bold tracking-widest text-[#f3e2c3]">
             LEADERBOARD
           </span>
+
         </div>
 
         {/* TABLE CONTAINER */}
