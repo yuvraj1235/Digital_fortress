@@ -146,20 +146,7 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* BACK BUTTON */}
-        <div className="relative mt-6 shrink-0">
-          <button
-            onClick={() => router.back()}
-            className="relative hover:scale-105 active:scale-95 transition-transform"
-          >
-            <Image
-              src="/textures/back-button.png"
-              alt="Back"
-              width={110}
-              height={44}
-            />
-          </button>
-        </div>
+
       </div>
     </div>
   );
