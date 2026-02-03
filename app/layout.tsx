@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Cinzel, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -18,6 +18,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Digital Fortress",
   description: "The ultimate treasure hunt experience",
@@ -30,14 +41,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${cormorant.variable} antialiased bg-black`}>
         <AudioProvider>
           <AuthProvider>
             {/* This now works because ContentWrapper is a 'use client' file */}
             <ContentWrapper>
               {children}
             </ContentWrapper>
-            
+
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </AudioProvider>

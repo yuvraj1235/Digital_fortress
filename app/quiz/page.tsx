@@ -51,7 +51,7 @@ export default function QuizPage() {
       if (err.needsReauth || (err.status === 500 && err.message.includes("account is incomplete"))) {
         setAuthError(true);
         setError(err.message || "Please register again with Google");
-        
+
         setTimeout(() => {
           router.push("/register?error=incomplete_profile");
         }, 3000);
@@ -76,51 +76,51 @@ export default function QuizPage() {
     }
   };
 
- const handleSubmit = async () => {
-  const formattedAnswer = answer.trim().toLowerCase();
-  if (!formattedAnswer) return;
+  const handleSubmit = async () => {
+    const formattedAnswer = answer.trim().toLowerCase();
+    if (!formattedAnswer) return;
 
-  try {
-    setSubmitting(true);
-    const data = await apiRequest("quiz/checkRound", {
-      method: "POST",
-      body: JSON.stringify({ answer: formattedAnswer }),
-    });
-
-    if (data.status === 200) {
-      setAnswer("");
-      
-      // 1. Success Notification
-      toast.success("Correct!", {
-        description: "You have conquered this round. Returning to the map in 3 seconds...",
-        style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
+    try {
+      setSubmitting(true);
+      const data = await apiRequest("quiz/checkRound", {
+        method: "POST",
+        body: JSON.stringify({ answer: formattedAnswer }),
       });
 
-      // 2. Automatic Redirect after 3 seconds
-      setTimeout(() => {
-        router.push("/home");
-      }, 3000);
+      if (data.status === 200) {
+        setAnswer("");
 
-      // We still call initRound if you want the state refreshed before leaving
-      initRound();
-    } else {
-      toast.error("Incorrect", {
-        description: "The archives remain silent. Try again!",
-        style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
+        // 1. Success Notification
+        toast.success("Correct!", {
+          description: "You have conquered this round. Returning to the map in 3 seconds...",
+          style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
+        });
+
+        // 2. Automatic Redirect after 3 seconds
+        setTimeout(() => {
+          router.push("/home");
+        }, 3000);
+
+        // We still call initRound if you want the state refreshed before leaving
+        initRound();
+      } else {
+        toast.error("Incorrect", {
+          description: "The archives remain silent. Try again!",
+          style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
+        });
+      }
+    } catch (err: any) {
+      if (err.needsReauth) {
+        router.push("/register?error=incomplete_profile");
+        return;
+      }
+      toast.error("Submission Error", {
+        description: err.data?.message || "Something went wrong.",
       });
+    } finally {
+      setSubmitting(false);
     }
-  } catch (err: any) {
-    if (err.needsReauth) {
-      router.push("/register?error=incomplete_profile");
-      return;
-    }
-    toast.error("Submission Error", {
-      description: err.data?.message || "Something went wrong.",
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
@@ -147,53 +147,105 @@ export default function QuizPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4 pt-32 pb-32 md:pt-4 md:pb-4">
-        <div className="flex flex-col md:flex-row w-[calc(95%-20px)] md:w-[calc(80%-20px)] max-w-6xl h-auto md:h-[60vh] bg-[#2D1B13]/90 rounded-xl overflow-hidden shadow-[0_0_60px_rgba(255,230,150,0.5)] border-4 border-[#1a100c] backdrop-blur-sm">
+        {/* Royal Archive Card */}
+        <div
+          className="flex flex-col md:flex-row w-full max-w-6xl h-auto md:h-[65vh] rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform transition-transform duration-300"
+          style={{
+            // Rich Mahogany Gradient Base
+            background: 'linear-gradient(180deg, #2a1810 0%, #1f100b 100%)',
+            // Double Border effect using box-shadow
+            boxShadow: '0 0 0 1px #4e342e, 0 0 0 4px #1a0f0a, 0 0 20px rgba(0,0,0,0.8)'
+          }}
+        >
+          {/* Texture Overlay (Noise) */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+          />
 
-          {/* Left Panel: Question and Input */}
-          <div className="w-full md:w-1/2 p-8 flex flex-col justify-center items-center">
+          {/* Decorative Corner Borders (Gold Inlay) */}
+          <div className="absolute top-2 left-2 right-2 bottom-2 border border-[#8d6e63]/30 rounded-lg pointer-events-none z-10" />
+          <div className="absolute top-3 left-3 right-3 bottom-3 border border-[#8d6e63]/10 rounded-lg pointer-events-none z-10" />
+
+          {/* Left Panel: The Riddle Tablet */}
+          <div className="relative w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center items-center z-20">
+
             {loading ? (
-              <p className="text-[#C6AD8B] font-serif text-xl animate-pulse">Loading...</p>
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-10 h-10 border-2 border-[#8d6e63] border-t-transparent rounded-full animate-spin" />
+                <p className="text-[#8d6e63] font-serif tracking-widest text-sm uppercase">Unlocking Archives...</p>
+              </div>
             ) : authError ? (
               <div className="w-full max-w-md space-y-4 text-center">
                 <p className="text-red-400 font-serif text-lg">{error}</p>
-                <p className="text-[#C6AD8B] font-serif text-sm">Redirecting...</p>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="text-[#8d6e63] border-b border-[#8d6e63] hover:text-[#bcaaa4] transition-colors font-serif text-sm"
+                >
+                  Restore Identification
+                </button>
               </div>
             ) : error ? (
-              <p className="text-red-400 font-serif text-center">{error}</p>
+              <div className="px-6 py-3 bg-[#3e2723] border border-red-900/50 text-red-300 font-serif text-center rounded shadow-inner">
+                {error}
+              </div>
             ) : (
-              <div className="w-full max-w-md space-y-6">
-                <h2 className="text-[#C6AD8B] text-xl md:text-2xl font-serif text-center leading-relaxed drop-shadow-lg">
-                  {roundData?.question}
-                </h2>
+              <div className="w-full max-w-lg space-y-8">
+                {/* Question Header */}
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-3 opacity-50">
+                    <span className="h-[1px] w-8 bg-[#8d6e63]"></span>
+                    <span className="text-[#8d6e63] text-xs font-serif uppercase tracking-[0.25em]">Enigma</span>
+                    <span className="h-[1px] w-8 bg-[#8d6e63]"></span>
+                  </div>
+                  <h2
+                    className="text-2xl md:text-3xl text-[#eaddcf] leading-snug drop-shadow-md"
+                    style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+                  >
+                    {roundData?.question}
+                  </h2>
+                </div>
 
-                <input
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                  placeholder="Enter your answer..."
-                  className="w-full p-4 text-center text-lg font-serif rounded-lg bg-[#EADDCA] text-[#3E2723] focus:ring-2 focus:ring-[#C6AD8B] outline-none transition-all"
-                />
+                {/* Input Field (Inlaid Dark Wood) */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-[#1a0f0a] rounded-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] border-b border-[#3e2723]" />
+                  <input
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                    placeholder="Inscribe your answer..."
+                    className="relative w-full p-4 text-center text-xl bg-transparent text-[#eaddcf] placeholder-[#5d4037] focus:outline-none focus:placeholder-[#8d6e63]/50 transition-colors font-serif tracking-wide"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  />
+                </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button onClick={() => setShowClues(true)} className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg hover:bg-[#1a100c] transition-colors border border-[#C6AD8B]/20">
-                     Clues
+                {/* Interactive Plaques (Buttons) */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+                  <button
+                    onClick={() => setShowClues(true)}
+                    className="px-8 py-3 bg-[#3e2723] text-[#bcaaa4] border border-[#5d4037] rounded shadow-[0_4px_0_#271c19] hover:translate-y-[2px] hover:shadow-[0_2px_0_#271c19] hover:bg-[#4e342e] transition-all font-serif tracking-widest text-sm uppercase flex items-center gap-2 justify-center group"
+                  >
+                    <span className="opacity-70 group-hover:opacity-100">✦</span> Clues
                   </button>
 
-                  <button 
-                    onClick={handleSubmit} 
-                    disabled={submitting || !answer.trim()} 
-                    className="px-8 py-3 bg-[#C6AD8B] text-[#2D1B13] rounded-lg font-bold hover:bg-[#EADDCA] transition-colors disabled:opacity-50"
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || !answer.trim()}
+                    className="px-10 py-3 bg-[#ffd54f]/10 text-[#ffecb3] border border-[#ffca28]/40 rounded shadow-[0_4px_0_#4e342e] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4e342e] hover:bg-[#ffd54f]/20 transition-all font-serif tracking-widest text-sm uppercase font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
                   >
-                    {submitting ? "⏳ Checking..." : "Submit"}
+                    {submitting ? "Verifying..." : "Submit Board"}
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Panel: Map */}
-          <div className="w-full md:w-1/2 p-4 min-h-[300px]">
-            <MyMap center={mapCentre} clues={clues} />
+          {/* Right Panel: Map with Frame */}
+          <div className="relative w-full md:w-1/2 bg-[#1a0f0a] shadow-[inset_10px_0_30px_rgba(0,0,0,0.8)]">
+            <div className="absolute inset-0 z-20 pointer-events-none border-t md:border-t-0 md:border-l border-[#3e2723]/50" />
+            <div className="w-full h-full opacity-90 mix-blend-normal">
+              <MyMap center={mapCentre} clues={clues} />
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from "react";
 
 type RulesProps = {
   open: boolean;
@@ -8,76 +8,129 @@ type RulesProps = {
 };
 
 export default function Rules({ open, onClose }: RulesProps) {
-  if (!open) return null;
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setShow(true);
+      document.body.style.overflow = "hidden";
+    } else {
+      const timer = setTimeout(() => setShow(false), 300);
+      document.body.style.overflow = "unset";
+      return () => clearTimeout(timer);
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  if (!show && !open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-      
-      {/* PARCHMENT CONTAINER */}
+    <div
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 transition-all duration-300 ${open ? "bg-black/80 backdrop-blur-sm opacity-100" : "bg-black/0 opacity-0 pointer-events-none"
+        }`}
+      onClick={onClose}
+    >
+      {/* Royal Archive Card */}
       <div
-        className="relative"
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-xl flex flex-col items-center overflow-hidden rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) ${open ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-12 opacity-0"
+          }`}
         style={{
-          width: "90vw",
-          maxWidth: "1000px",
-          aspectRatio: "4 / 3",
-          backgroundImage: "url('/rules_scroll.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "contain",
-          backgroundPosition: "center",
+          background: 'linear-gradient(180deg, #2a1810 0%, #1f100b 100%)',
+          boxShadow: '0 0 0 1px #4e342e, 0 0 0 4px #1a0f0a'
         }}
       >
-        {/* THE CLOSE BUTTON (Anchored to Scroll Corner) */}
+        {/* Texture Overlay */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+        />
+
+        {/* Decorative Corners */}
+        <div className="absolute top-2 left-2 right-2 bottom-2 border border-[#8d6e63]/30 rounded-lg pointer-events-none z-10" />
+        <div className="absolute top-3 left-3 right-3 bottom-3 border border-[#8d6e63]/10 rounded-lg pointer-events-none z-10" />
+
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-[19%] right-[22%] w-10 h-10 flex items-center justify-center bg-[#3a2a1a] text-[#f3e2c3] rounded-full border-2 border-[#6b4a2d] hover:bg-[#6b4a2d] hover:scale-110 transition-all shadow-xl z-[120]"
-          title="Close Rules"
+          className="absolute top-4 right-4 z-50 p-2 text-[#8d6e63] hover:text-[#eaddcf] hover:rotate-90 transition-all duration-300"
+          aria-label="Close Rules"
         >
-          <span className="text-xl font-bold leading-none">×</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
 
-        {/* CONTENT SAFE AREA */}
-        <div
-          className="absolute flex flex-col items-center text-[#3a2a1a]"
-          style={{
-            top: "25%",
-            bottom: "28%",
-            left: "15%",
-            right: "14%",
-            fontSize: "clamp(0.65rem, 1.1vw, 1rem)",
-            fontFamily: "'Cormorant Garamond', 'Garamond', serif",
-          }}
-        >
-          {/* TITLE */}
-          <h1
-            className="mb-4 text-center uppercase"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              letterSpacing: "0.2em",
-              fontSize: "1.8em",
-            }}
-          >
-            Rules of the Game
-          </h1>
+        {/* Header */}
+        <div className="w-full text-center pt-10 pb-6 px-8 relative z-20">
+          <div className="inline-flex flex-col items-center gap-2">
+            <span className="text-[#8d6e63] text-[10px] tracking-[0.3em] font-serif uppercase">Digital Fortress</span>
+            <h2
+              className="text-3xl sm:text-4xl text-[#eaddcf] font-medium uppercase tracking-widest drop-shadow-sm"
+              style={{ fontFamily: "var(--font-cinzel), serif" }}
+            >
+              Protocol
+            </h2>
+            <div className="flex items-center gap-3 mt-2 opacity-60">
+              <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#8d6e63]" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#8d6e63] bg-[#1f100b]" />
+              <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#8d6e63]" />
+            </div>
+          </div>
+        </div>
 
-          {/* RULES LIST */}
-          <ul className="space-y-3 leading-snug max-w-2xl overflow-y-auto pr-2 scrollbar-hide">
+        {/* Content */}
+        <div className="w-full px-6 sm:px-10 pb-10 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] z-20 scrollbar-thin scrollbar-thumb-[#4e342e] scrollbar-track-transparent">
+          <ul className="space-y-3">
             {[
-              "Solving each round rewards you 10 points.",
-              "Each round is based on a theme which you need to figure out.",
-              "Each round consists of a main question and a few clue questions.",
-              "Answering each clue question unlocks a position on the map.",
-              "These locations, shapes, or street-views are hints to the main question.",
-              "The leaderboard will be inactive during sample rounds.",
-            ].map((rule, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <span className="text-[#6b4a2d] text-[1.1em] mt-[0.2em]">
-                  •
+              { text: "Solving each round rewards you 10 points.", idx: "I" },
+              { text: "Each round implies a theme you must decipher.", idx: "II" },
+              { text: "Main questions are supported by hidden clues.", idx: "III" },
+              { text: "Clues unlock specific positions on the map.", idx: "IV" },
+              { text: "Locations & shapes are the key to the answer.", idx: "V" },
+              { text: "Leaderboards are frozen during training.", idx: "VI" },
+            ].map((rule, i) => (
+              <li
+                key={i}
+                className="group relative flex items-center gap-4 p-4 rounded-lg border border-[#3e2723]/50 bg-[#1a0f0a]/40 hover:bg-[#3e2723]/30 transition-all duration-300"
+              >
+                {/* Roman Numeral */}
+                <span className="flex-shrink-0 w-8 font-serif text-sm font-bold text-[#8d6e63] group-hover:text-[#ffd54f] transition-colors text-right">
+                  {rule.idx}.
                 </span>
-                <span className="font-medium">{rule}</span>
+
+                {/* Text */}
+                <span
+                  className="text-[#bcaaa4] text-lg leading-snug group-hover:text-[#eaddcf] transition-colors duration-200"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                >
+                  {rule.text}
+                </span>
               </li>
             ))}
           </ul>
+
+          <div className="mt-8 pt-6 border-t border-[#3e2723]/50 flex flex-col items-center gap-2 opacity-60">
+            <div className="text-[#5d4037] text-[10px] tracking-[0.2em] uppercase font-sans">
+              Review Complete
+            </div>
+          </div>
         </div>
       </div>
     </div>
