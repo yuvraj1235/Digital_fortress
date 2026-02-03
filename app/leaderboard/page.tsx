@@ -62,7 +62,7 @@ export default function LeaderboardPage() {
     return standings.map((player, idx) => (
       <div
         key={idx}
-        className="relative flex items-center justify-between px-6 py-4 rounded-md overflow-hidden text-[#f1e6d0] shadow-[0_0_12px_rgba(0,0,0,0.6)]"
+        className="relative flex items-center justify-between px-6 py-4 rounded-md overflow-hidden text-[#f1e6d0]"
       >
         {/* Row background texture */}
         <Image
