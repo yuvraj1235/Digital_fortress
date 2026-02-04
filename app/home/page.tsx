@@ -7,10 +7,9 @@ import { useProgress } from "@react-three/drei";
 import BottomBar from "@/components/ShareIcon";
 import CustomCursor from "@/components/CustomCursor";
 import Snowfall from "react-snowfall";
-import { useAudio } from "@/contexts/AudioContext"; 
-import MuteButton from "@/components/MuteButton"; 
+import { useAudio } from "@/contexts/AudioContext";
 import { useRouter } from "next/navigation"; // Import Router
-import Image from "next/image"; // Import Image for the button texture
+import SideNav from "@/components/SideNav";
 
 export default function Home() {
   const router = useRouter(); // Initialize Router
@@ -40,11 +39,11 @@ export default function Home() {
   // 3. Audio Control
   useEffect(() => {
     if (!audioRef.current) return;
-    
+
     audioRef.current.muted = isMuted;
 
     const playAudio = () => {
-      audioRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => { });
     };
 
     if (effectiveProgress === 100) {
@@ -59,27 +58,10 @@ export default function Home() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
       <Snowfall snowflakeCount={700} style={{ position: "fixed", inset: 0, zIndex: 30, pointerEvents: "none" }} />
       <CustomCursor />
-      
+
       {effectiveProgress < 100 && <LoadingScreen progress={effectiveProgress} />}
 
-      {/* LEADERBOARD & MUTE CONTROLS */}
-      <div className="fixed top-24 right-6 z-[60] flex flex-col gap-4 items-center">
-        <MuteButton />
-        
-        {/* Leaderboard Shortcut */}
-      {/* SIMPLE LEADERBOARD & MUTE CONTROLS */}
-<div className="fixed top-24 right-6 z-[60] flex flex-col gap-3 items-center">
-  <MuteButton />
-  
-    <button 
-    onClick={() => router.push("/leaderboard")}
-    className="w-12 h-12 flex items-center justify-center bg-black/60 border border-[#3fb4ff]/50 rounded-lg text-xl hover:bg-[#3fb4ff]/20 hover:border-[#3fb4ff] transition-all"
-    title="Leaderboard"
-  >
-    LB
-  </button>
-</div>
-      </div>
+      <SideNav />
 
       <audio ref={audioRef} src="/sounds/waves.webm" autoPlay loop />
 
