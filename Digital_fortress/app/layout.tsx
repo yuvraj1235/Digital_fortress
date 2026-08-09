@@ -1,0 +1,53 @@
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Script from "next/script";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AudioProvider } from "@/contexts/AudioContext";
+import { Toaster } from "sonner";
+import ContentWrapper from "@/components/providers/ContentWrapper";
+import CustomCursor from "@/components/CustomCursor";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Digital Fortress",
+  description: "The ultimate treasure hunt experience",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
+        <AudioProvider>
+          <AuthProvider>
+            <ContentWrapper>
+              {children}
+            </ContentWrapper>
+
+            <CustomCursor />
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
+        </AudioProvider>
+
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="beforeInteractive"
+        />
+      </body>
+    </html>
+  );
+}
