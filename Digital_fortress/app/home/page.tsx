@@ -7,8 +7,8 @@ import { useProgress } from "@react-three/drei";
 import BottomBar from "@/components/ShareIcon";
 import CustomCursor from "@/components/CustomCursor";
 import Snowfall from "react-snowfall";
-import { useAudio } from "@/contexts/AudioContext"; 
-import MuteButton from "@/components/MuteButton"; 
+import { useAudio } from "@/contexts/AudioContext";
+import MuteButton from "@/components/MuteButton";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -37,11 +37,11 @@ export default function Home() {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    
+
     audioRef.current.muted = isMuted;
 
     const playAudio = () => {
-      audioRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => { });
     };
 
     if (effectiveProgress === 100) {
@@ -54,13 +54,13 @@ export default function Home() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
-      <Snowfall snowflakeCount={700} style={{ position: "fixed", inset: 0, zIndex: 30, pointerEvents: "none" }} />
+      <Snowfall snowflakeCount={100} style={{ position: "fixed", inset: 0, zIndex: 30, pointerEvents: "none" }} />
 
-      
+
       {effectiveProgress < 100 && <LoadingScreen progress={effectiveProgress} />}
 
-   
- {/* LEADERBOARD & MUTE CONTROLS */}
+
+      {/* LEADERBOARD & MUTE CONTROLS */}
       <div className="fixed top-24 right-6 z-[100] flex flex-col gap-4 items-center pointer-events-auto">
         <MuteButton />
 

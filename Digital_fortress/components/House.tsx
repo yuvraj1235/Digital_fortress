@@ -8,14 +8,14 @@ import { useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/api";
 import ProceedButton from "@/components/Button";
 import MuteButton from "@/components/MuteButton"; // Ensure this is imported
-import { useAudio } from "@/contexts/AudioContext"; 
+import { useAudio } from "@/contexts/AudioContext";
 import { toast } from "sonner";
 
 export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const { isMuted } = useAudio(); 
-  
+  const { isMuted } = useAudio();
+
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -57,7 +57,7 @@ export default function Panorama() {
     if (bgMusicRef.current) {
       bgMusicRef.current.muted = isMuted;
       if (!isMuted && bgMusicRef.current.paused) {
-        bgMusicRef.current.play().catch(() => {});
+        bgMusicRef.current.play().catch(() => { });
       }
     }
     if (clickSoundRef.current) {
@@ -67,7 +67,7 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-        {/* MUTE BUTTON CONTAINER 
+      {/* MUTE BUTTON CONTAINER 
           We place it here so it sits ABOVE the Canvas.
           z-60 is higher than Navbar (50) and Canvas (0) 
         */}
@@ -80,9 +80,9 @@ export default function Panorama() {
         style={{ width: "100vw", height: "100vh" }}
       >
         <PanoramaSphere />
-        <OrbitControls enableZoom={false} enablePan={false} />
+        <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI * 0.4} maxPolarAngle={Math.PI * 0.75} />
       </Canvas>
-      
+
       {/* Bottom Button */}
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
         <ProceedButton round={currentRound} />
