@@ -64,7 +64,7 @@ export default function Home() {
       <div className="fixed top-24 right-6 z-[100] flex flex-col gap-4 items-center pointer-events-auto">
         <MuteButton />
 
-        <button
+        {/* <button
           onClick={() => router.push("/leaderboard")}
           className="relative block w-36 h-20 md:w-44 md:h-24 focus:outline-none cursor-pointer"
           title="Leaderboard"
@@ -77,7 +77,7 @@ export default function Home() {
             priority
             className="object-contain hover:scale-105 transition-transform duration-200"
           />
-        </button>
+        </button> */}
       </div>
 
       <audio ref={audioRef} src="/sounds/waves.webm" autoPlay loop />
