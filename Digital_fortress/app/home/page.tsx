@@ -54,7 +54,7 @@ export default function Home() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
-      <Snowfall snowflakeCount={100} style={{ position: "fixed", inset: 0, zIndex: 30, pointerEvents: "none" }} />
+      <Snowfall snowflakeCount={200} style={{ position: "fixed", inset: 0, zIndex: 30, pointerEvents: "none" }} />
 
 
       {effectiveProgress < 100 && <LoadingScreen progress={effectiveProgress} />}

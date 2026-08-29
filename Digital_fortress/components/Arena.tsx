@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { authService } from "@/lib/services/authService"; // Using central service
 import { toast } from "sonner";
-import { useAudio } from "@/contexts/AudioContext"; 
-import MuteButton from "@/components/MuteButton"; 
+import { useAudio } from "@/contexts/AudioContext";
+import MuteButton from "@/components/MuteButton";
 import ProceedButton from "@/components/Button";
 
 function PanoramaSphere() {
@@ -26,8 +26,8 @@ export default function Panorama() {
   const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [isFetching, setIsFetching] = useState(true); // Track loading state
-  const { isMuted } = useAudio(); 
-  
+  const { isMuted } = useAudio();
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -41,7 +41,7 @@ export default function Panorama() {
          * and automatically updates the 'df_round' cookie for middleware.
          */
         const userData = await authService.getUserProfile();
-        
+
         if (userData && userData.roundNo !== undefined) {
           const numericRound = Number(userData.roundNo);
           setCurrentRound(numericRound);
@@ -63,7 +63,7 @@ export default function Panorama() {
 
     const startAudio = () => {
       if (!isMuted) {
-        audioRef.current?.play().catch(() => {});
+        audioRef.current?.play().catch(() => { });
       }
       window.removeEventListener("click", startAudio);
     };
@@ -81,7 +81,7 @@ export default function Panorama() {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
       if (!isMuted && audioRef.current.paused && !isFetching) {
-        audioRef.current.play().catch(() => {});
+        audioRef.current.play().catch(() => { });
       }
     }
     if (clickSoundRef.current) {
@@ -98,7 +98,7 @@ export default function Panorama() {
 
       <Canvas camera={{ fov: 75, position: [0, 0, 0.1] }}>
         <PanoramaSphere />
-        <OrbitControls enableZoom={false} enablePan={false} makeDefault />
+        <OrbitControls enableZoom={false} enablePan={false} makeDefault minPolarAngle={Math.PI * 0.4} maxPolarAngle={Math.PI * 0.75} />
       </Canvas>
 
       {/* Action Button: Validates against currentRound */}

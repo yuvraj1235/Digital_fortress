@@ -13,27 +13,27 @@ export default function Profile() {
     const { user, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [currentRound, setCurrentRound] = useState<number | null>(null);
-      const [isLoading, setIsLoading] = useState(true);
-    
-      const fetchUser = async () => {
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchUser = async () => {
         try {
-          const data = await authService.getUserProfile();
-          if (data?.roundNo !== undefined) {
-            setCurrentRound(Number(data.roundNo));
-          }
+            const data = await authService.getUserProfile();
+            if (data?.roundNo !== undefined) {
+                setCurrentRound(Number(data.roundNo));
+            }
         } catch (e) {
-          console.error("Profile fetch failed", e);
+            console.error("Profile fetch failed", e);
         } finally {
-          setIsLoading(false);
+            setIsLoading(false);
         }
-      };
-    
-      useEffect(() => {
+    };
+
+    useEffect(() => {
         fetchUser();
         window.addEventListener("focus", fetchUser);
         return () => window.removeEventListener("focus", fetchUser);
-      }, []);
-    
+    }, []);
+
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
