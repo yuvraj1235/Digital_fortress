@@ -60,7 +60,25 @@ export default function Home() {
       {effectiveProgress < 100 && <LoadingScreen progress={effectiveProgress} />}
 
 
+      {/* LEADERBOARD & MUTE CONTROLS */}
+      <div className="fixed top-24 right-6 z-[100] flex flex-col gap-4 items-center pointer-events-auto">
+        <MuteButton />
 
+        {/* <button
+          onClick={() => router.push("/leaderboard")}
+          className="relative block w-36 h-20 md:w-44 md:h-24 focus:outline-none cursor-pointer"
+          title="Leaderboard"
+        >
+          <Image
+            src="/Leaderboard.png"
+            alt="Leaderboard"
+            fill
+            sizes="(max-width: 768px) 144px, 176px"
+            priority
+            className="object-contain hover:scale-105 transition-transform duration-200"
+          />
+        </button> */}
+      </div>
 
       <audio ref={audioRef} src="/sounds/waves.webm" autoPlay loop />
 
