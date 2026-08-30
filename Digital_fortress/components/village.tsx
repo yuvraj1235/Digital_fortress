@@ -81,10 +81,7 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* Mute Button Overlay: Fixed Z-index ensures visibility over Canvas */}
-      <div className="fixed top-24 right-6 z-[60]">
-        <MuteButton />
-      </div>
+
 
       <Canvas
         camera={{ fov: 75, position: [0, 0, 1] }}

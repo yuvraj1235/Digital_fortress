@@ -67,13 +67,7 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* MUTE BUTTON CONTAINER 
-          We place it here so it sits ABOVE the Canvas.
-          z-60 is higher than Navbar (50) and Canvas (0) 
-        */}
-      <div className="fixed top-24 right-6 z-[60]">
-        <MuteButton />
-      </div>
+
 
       <Canvas
         camera={{ fov: 75, position: [0, 0, 1] }}

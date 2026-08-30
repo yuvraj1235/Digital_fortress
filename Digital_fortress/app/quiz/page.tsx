@@ -51,7 +51,7 @@ export default function QuizPage() {
       if (err.needsReauth || (err.status === 500 && err.message.includes("account is incomplete"))) {
         setAuthError(true);
         setError(err.message || "Please register again with Google");
-        
+
         setTimeout(() => {
           router.push("/register?error=incomplete_profile");
         }, 3000);
@@ -76,51 +76,51 @@ export default function QuizPage() {
     }
   };
 
- const handleSubmit = async () => {
-  const formattedAnswer = answer.trim().toLowerCase();
-  if (!formattedAnswer) return;
+  const handleSubmit = async () => {
+    const formattedAnswer = answer.trim().toLowerCase();
+    if (!formattedAnswer) return;
 
-  try {
-    setSubmitting(true);
-    const data = await apiRequest("quiz/checkRound", {
-      method: "POST",
-      body: JSON.stringify({ answer: formattedAnswer }),
-    });
-
-    if (data.status === 200) {
-      setAnswer("");
-      
-      // 1. Success Notification
-      toast.success("Correct!", {
-        description: "You have conquered this round. Returning to the map in 3 seconds...",
-        style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
+    try {
+      setSubmitting(true);
+      const data = await apiRequest("quiz/checkRound", {
+        method: "POST",
+        body: JSON.stringify({ answer: formattedAnswer }),
       });
 
-      // 2. Automatic Redirect after 3 seconds
-      setTimeout(() => {
-        router.push("/home");
-      }, 3000);
+      if (data.status === 200) {
+        setAnswer("");
 
-      // We still call initRound if you want the state refreshed before leaving
-      initRound();
-    } else {
-      toast.error("Incorrect", {
-        description: "The archives remain silent. Try again!",
-        style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
+        // 1. Success Notification
+        toast.success("Correct!", {
+          description: "You have conquered this round. Returning to the map in 3 seconds...",
+          style: { background: "#1a100c", color: "#C6AD8B", border: "1px solid #C6AD8B" }
+        });
+
+        // 2. Automatic Redirect after 3 seconds
+        setTimeout(() => {
+          router.push("/home");
+        }, 3000);
+
+        // We still call initRound if you want the state refreshed before leaving
+        initRound();
+      } else {
+        toast.error("Incorrect", {
+          description: "The archives remain silent. Try again!",
+          style: { background: "#2D1B13", color: "#FFB3B3", border: "1px solid #FF0000" }
+        });
+      }
+    } catch (err: any) {
+      if (err.needsReauth) {
+        router.push("/register?error=incomplete_profile");
+        return;
+      }
+      toast.error("Submission Error", {
+        description: err.data?.message || "Something went wrong.",
       });
+    } finally {
+      setSubmitting(false);
     }
-  } catch (err: any) {
-    if (err.needsReauth) {
-      router.push("/register?error=incomplete_profile");
-      return;
-    }
-    toast.error("Submission Error", {
-      description: err.data?.message || "Something went wrong.",
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#3E2723]">
@@ -176,12 +176,12 @@ export default function QuizPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button onClick={() => setShowClues(true)} className="px-8 py-3 bg-[#2D1B13] text-[#C6AD8B] rounded-lg hover:bg-[#1a100c] transition-colors border border-[#C6AD8B]/20">
-                     Clues
+                    Clues
                   </button>
 
-                  <button 
-                    onClick={handleSubmit} 
-                    disabled={submitting || !answer.trim()} 
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || !answer.trim()}
                     className="px-8 py-3 bg-[#C6AD8B] text-[#2D1B13] rounded-lg font-bold hover:bg-[#EADDCA] transition-colors disabled:opacity-50"
                   >
                     {submitting ? "⏳ Checking..." : "Submit"}

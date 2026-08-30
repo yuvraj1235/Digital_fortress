@@ -80,10 +80,7 @@ export default function Panorama() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* Mute Button */}
-      <div className="fixed top-24 right-6 z-[60]">
-        <MuteButton />
-      </div>
+
 
       <Canvas
         camera={{ fov: 75, position: [0, 0, 1] }}

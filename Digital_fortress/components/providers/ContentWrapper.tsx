@@ -1,8 +1,8 @@
 // components/providers/ContentWrapper.tsx
-"use client"; // This is the magic line
+"use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import Profile from "@/components/Profile";
+import RightSidebarControls from "@/components/RightSidebarControls";
 
 export default function ContentWrapper({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -19,7 +19,7 @@ export default function ContentWrapper({ children }: { children: React.ReactNode
 
   return (
     <>
-      {user && <Profile />}
+      <RightSidebarControls />
       {children}
     </>
   );
