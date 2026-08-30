@@ -37,6 +37,7 @@ GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -178,21 +179,8 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 #CORS_ALLOW_CREDENTIALS = True
 
+# CSRF & CORS Configurations
+CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=None)
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000', cast=Csv())
 CORS_ORIGIN_ALLOW_ALL = True
 
-#CORS_ALLOW_CREDENTIALS = True
-
-'''
-CSRF_TRUSTED_ORIGINS = ['dfapi.weblikate.com','localhost:8000','localhost:5000','digitalfortress-frontend.vercel.app']
-'''
-CSRF_COOKIE_DOMAIN=  'dfapi.weblikate.com'
-'''
-CORS_ORIGIN_WHITELIST = [
-    'localhost:8000','localhost:5000','dfapi.weblikate.com','digitalfortress-frontend.vercel.app'
-]
-'''
-'''
-CORS_ORIGIN_REGEX_WHITELIST = [
-    'http://localhost:8000','http://localhost:5000','https://dfapi.weblikate.com',
-]
-'''
