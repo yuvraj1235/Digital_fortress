@@ -1229,18 +1229,18 @@ function MapClusterLayer<
 
     // Cursor style handlers
     const handleMouseEnterCluster = () => {
-      map.getCanvas().style.cursor = "pointer";
+      map.getCanvas().style.cursor = "none";
     };
     const handleMouseLeaveCluster = () => {
-      map.getCanvas().style.cursor = "";
+      map.getCanvas().style.cursor = "none";
     };
     const handleMouseEnterPoint = () => {
       if (onPointClick) {
-        map.getCanvas().style.cursor = "pointer";
+        map.getCanvas().style.cursor = "none";
       }
     };
     const handleMouseLeavePoint = () => {
-      map.getCanvas().style.cursor = "";
+      map.getCanvas().style.cursor = "none";
     };
 
     map.on("click", clusterLayerId, handleClusterClick);

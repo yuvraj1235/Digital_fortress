@@ -88,44 +88,32 @@ export default function CustomCursor() {
     switch (mode) {
       case "interactive":
         gsap.to(ringRef.current, {
-          width: 56,
-          height: 56,
-          borderRadius: 999,
-          backgroundColor: "#111111",
-          borderColor: "#111111",
+          width: 52,
+          height: 52,
           duration: 0.3,
           ease: "power3.out",
         });
         break;
       case "level":
         gsap.to(ringRef.current, {
-          width: 64,
-          height: 64,
-          borderRadius: 999,
-          backgroundColor: "#3fb4ff",
-          borderColor: "#3fb4ff",
+          width: 60,
+          height: 60,
           duration: 0.3,
           ease: "power3.out",
         });
         break;
       case "text":
         gsap.to(ringRef.current, {
-          width: 3,
-          height: 28,
-          borderRadius: 2,
-          backgroundColor: "#111111",
-          borderColor: "#111111",
+          width: 30,
+          height: 30,
           duration: 0.25,
           ease: "power3.out",
         });
         break;
       default:
         gsap.to(ringRef.current, {
-          width: 32,
-          height: 32,
-          borderRadius: 999,
-          backgroundColor: "transparent",
-          borderColor: "#111111",
+          width: 42,
+          height: 42,
           duration: 0.3,
           ease: "power3.out",
         });
@@ -136,18 +124,20 @@ export default function CustomCursor() {
     <>
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 pointer-events-none z-[9999] border-2
-                    flex items-center justify-center
+        className={`fixed top-0 left-0 pointer-events-none z-[9999] flex items-center justify-center
                     text-[10px] font-bold uppercase tracking-wide text-white
                     transition-opacity duration-300
                     ${visible ? "opacity-100" : "opacity-0"}`}
         style={{
-          width: 32,
-          height: 32,
-          marginLeft: -16,
-          marginTop: -16,
-          borderColor: "#111111",
-          borderRadius: 999,
+          width: 42,
+          height: 42,
+          marginLeft: -21,
+          marginTop: -21,
+          backgroundImage: 'url("/sword_cursor.png")',
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          filter: "drop-shadow(0 0 6px rgba(0,0,0,0.35))",
         }}
       >
         {mode === "level" && cursorText}
@@ -156,7 +146,7 @@ export default function CustomCursor() {
       <div
         ref={dotRef}
         className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full
-                    transition-opacity duration-300
+                    transition-opacity duration-300 hidden
                     ${visible ? "opacity-100" : "opacity-0"}`}
         style={{
           width: 6,

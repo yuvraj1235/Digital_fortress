@@ -62,7 +62,7 @@ export default function Home() {
 
       {/* LEADERBOARD & MUTE CONTROLS */}
       <div className="fixed top-24 right-6 z-[100] flex flex-col gap-4 items-center pointer-events-auto">
-        <MuteButton />
+        {/*<MuteButton />*/}
 
         {/* <button
           onClick={() => router.push("/leaderboard")}

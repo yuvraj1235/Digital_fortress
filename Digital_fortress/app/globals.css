@@ -178,8 +178,12 @@
   input,
   textarea,
   select,
-  [role="button"] {
-    cursor: none;
+  [role="button"],
+  .cursor-pointer,
+  [data-cursor="interactive"],
+  .maplibregl-canvas,
+  .maplibregl-canvas-container {
+    cursor: none !important;
   }
 
   /* Restore default cursor on touch devices — nothing to hide there,
@@ -192,7 +196,11 @@
     input,
     textarea,
     select,
-    [role="button"] {
+    [role="button"],
+    .cursor-pointer,
+    [data-cursor="interactive"],
+    .maplibregl-canvas,
+    .maplibregl-canvas-container {
       cursor: auto;
     }
   }

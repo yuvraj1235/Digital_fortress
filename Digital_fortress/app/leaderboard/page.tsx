@@ -156,6 +156,7 @@ export default function LeaderboardPage() {
               alt="Back"
               width={110}
               height={44}
+              className="w-10 h-auto"
             />
           </button>
         </div>
